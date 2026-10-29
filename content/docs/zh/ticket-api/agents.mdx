@@ -1,0 +1,28 @@
+---
+title: 供 AI 智能体使用的文档
+description: 让编程智能体直接抓取本文档的纯 Markdown 版本。
+---
+
+对接 API 的编程智能体可以自己阅读本文档。每个页面都另有一份纯 Markdown 版本，包含请求和响应示例，因此任何能抓取网址的智能体都能使用。无需安装任何东西，也不需要密钥。
+
+| 地址 | 内容 |
+|---|---|
+| [`/llms.txt`](https://docs.sekaibeyond.com/llms.txt) | 所有页面的地址和一句简介，含两种语言 |
+| [`/llms-full.txt`](https://docs.sekaibeyond.com/llms-full.txt) | 所有英文页面的全文，合为一个文件，约 2 万 token |
+| `/llms.mdx/<lang>/<page>/content.md` | 单个页面，例如 [`/llms.mdx/zh/api-reference/create-order/content.md`](https://docs.sekaibeyond.com/llms.mdx/zh/api-reference/create-order/content.md) |
+
+每个页面顶部的「复制 Markdown」按钮复制的也是同样的内容。
+
+## 告诉你的智能体
+
+把下面这段粘贴到智能体的指令中（例如 `CLAUDE.md` 或 `AGENTS.md`），或直接发到对话里：
+
+```md
+Sekai Beyond 门票 API 的文档位于 https://docs.sekaibeyond.com。
+先读 https://docs.sekaibeyond.com/llms.txt 中的页面列表，再按需读取单个页面的
+Markdown：https://docs.sekaibeyond.com/llms.mdx/zh/<page>/content.md，其中 <page>
+是页面地址中 /zh/ 之后的部分，例如 api-reference/create-order。
+英文全文合集在 https://docs.sekaibeyond.com/llms-full.txt。
+```
+
+有些智能体的抓取工具返回的是页面摘要而不是原文，可能丢失确切的字段名。遇到这种情况，请让它改用 `curl` 抓取。

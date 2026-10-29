@@ -1,0 +1,28 @@
+---
+title: Docs for AI agents
+description: Point a coding agent at these docs, as plain Markdown it can fetch.
+---
+
+A coding agent building against the API can read these docs itself. Every page is also published as plain Markdown, request and response examples included, so any agent that can fetch a URL can use them. There's nothing to install, and no key.
+
+| URL | Has |
+|---|---|
+| [`/llms.txt`](https://docs.sekaibeyond.com/llms.txt) | Every page, with its URL and a line on what it covers, in both languages |
+| [`/llms-full.txt`](https://docs.sekaibeyond.com/llms-full.txt) | Every English page in full, in one file of about 20k tokens |
+| `/llms.mdx/<lang>/<page>/content.md` | One page, such as [`/llms.mdx/en/api-reference/create-order/content.md`](https://docs.sekaibeyond.com/llms.mdx/en/api-reference/create-order/content.md) |
+
+The **Copy Markdown** button at the top of each page copies the same thing.
+
+## Telling your agent
+
+Paste this into the agent's instructions, such as `CLAUDE.md` or `AGENTS.md`, or into the chat:
+
+```md
+The Sekai Beyond ticket API is documented at https://docs.sekaibeyond.com.
+Read https://docs.sekaibeyond.com/llms-full.txt for all of it, or start from
+https://docs.sekaibeyond.com/llms.txt and read single pages as Markdown at
+https://docs.sekaibeyond.com/llms.mdx/en/<page>/content.md, where <page> is
+the page's path after /en/, such as api-reference/create-order.
+```
+
+Some agents' fetch tools return a summary of a page rather than the page itself, which can drop exact field names. If yours does, have it fetch with `curl` instead.
