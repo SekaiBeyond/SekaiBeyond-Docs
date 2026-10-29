@@ -76,7 +76,7 @@ function ticket(ticketId: string, type: string, redeemedAt: string | null) {
   };
 }
 
-export const newOrder = {
+const newOrder = {
   orderId,
   eventId,
   createdAt: '2026-10-28T09:12:44.311Z',
@@ -91,7 +91,7 @@ export const newOrder = {
 };
 
 // The same order on the night, after its first ticket was scanned at the door.
-export const scannedOrder = {
+const scannedOrder = {
   ...newOrder,
   updatedAt: '2026-11-14T18:31:02.907Z',
   tickets: [

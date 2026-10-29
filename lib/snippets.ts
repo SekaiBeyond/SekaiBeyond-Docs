@@ -1,7 +1,7 @@
-import type { Operation } from './examples';
+import type { Operation } from '@/lib/examples';
 
 // The relay, since it works from mainland China and everywhere else.
-export const baseUrl = 'https://api.sekaibeyond.com';
+const baseUrl = 'https://api.sekaibeyond.com';
 
 export interface Snippet {
   id: string;
@@ -14,10 +14,10 @@ function json(value: unknown, indent: string) {
   return JSON.stringify(value, null, 2).replaceAll('\n', `\n${indent}`);
 }
 
-function curl({ method, path, body }: Operation) {
+function curl({ path, body }: Operation) {
   // -d makes it a POST, the only method with a body.
   const lines = [`curl ${baseUrl}${path}`, `-H "Authorization: Bearer $SEKAI_API_KEY"`];
-  if (method === 'POST') {
+  if (body !== undefined) {
     lines.push(`-H "Content-Type: application/json"`, `-d '${json(body, '  ')}'`);
   }
   return lines.join(' \\\n  ');
@@ -130,9 +130,8 @@ function java({ method, path, body }: Operation) {
   const pad = '        ';
   const lines: string[] = [];
   if (body !== undefined) {
-    lines.push(`String body = """`);
-    lines.push(...`${JSON.stringify(body, null, 2)}`.split('\n').map((l) => `    ${l}`));
-    lines.push(`    """;`);
+    const text = JSON.stringify(body, null, 2).split('\n');
+    lines.push(`String body = """`, ...text.map((l) => `    ${l}`), `    """;`);
   }
   lines.push(
     'HttpRequest request = HttpRequest.newBuilder()',

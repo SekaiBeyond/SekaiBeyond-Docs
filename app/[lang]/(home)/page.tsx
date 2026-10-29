@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { RequestExample } from '@/components/api';
 import { isLocale, type Locale } from '@/lib/i18n';
+import { appName } from '@/lib/shared';
 
 const copy = {
   en: {
-    eyebrow: 'Sekai Beyond Developers',
     title: 'Build with Sekai Beyond',
     lead: 'Sell tickets for our events from your own app with the ticket API, and find how the Sekai Beyond website is built, tested and deployed.',
     start: 'Get started',
@@ -35,7 +35,6 @@ const copy = {
     ],
   },
   zh: {
-    eyebrow: 'Sekai Beyond 开发者文档',
     title: '基于 Sekai Beyond 开发',
     lead: '通过门票 API，在你自己的应用里为我们的活动售票；也可以在这里了解 Sekai Beyond 官网如何构建、测试与部署。',
     start: '快速上手',
@@ -75,7 +74,7 @@ export default async function HomePage({ params }: PageProps<'/[lang]'>) {
       <section className="max-w-3xl">
         <p className="mb-4 inline-flex items-center gap-2 rounded-full border bg-fd-card px-3 py-1 text-sm text-fd-muted-foreground">
           <span className="size-2.5 rounded-full bg-linear-to-b from-mika-pink to-mika-mint" />
-          {c.eyebrow}
+          {appName[lang]}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">{c.title}</h1>
         <p className="mt-5 text-lg leading-relaxed text-fd-muted-foreground">{c.lead}</p>

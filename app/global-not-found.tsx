@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
+import { inter } from '@/lib/font';
+import { appName } from '@/lib/shared';
 import './global.css';
 
 export const metadata: Metadata = {
-  title: 'Page not found · Sekai Beyond Developers',
+  title: `Page not found · ${appName.en}`,
 };
 
 export default function GlobalNotFound() {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col">
         <main className="m-auto flex flex-col items-center gap-3 p-8 text-center">
           <img src="/mika.webp" alt="" width={56} height={56} className="rounded-full" />

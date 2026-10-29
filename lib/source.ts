@@ -1,7 +1,7 @@
 import { llms, loader } from 'fumadocs-core/source';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
 import { defineDocs } from 'fumadocs-mdx/macro';
-import { i18n } from './i18n';
+import { i18n } from '@/lib/i18n';
 
 const docs = defineDocs({
   dir: 'content/docs',
@@ -16,12 +16,10 @@ const docs = defineDocs({
   },
 });
 
-// See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
   baseUrl: '/',
   source: docs.toFumadocsSource(),
   i18n,
-  plugins: [],
 });
 
 export const docsLlms = llms(source, {

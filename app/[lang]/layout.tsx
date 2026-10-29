@@ -1,19 +1,12 @@
 import { i18nProvider } from 'fumadocs-ui/i18n';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { Provider } from '@/components/provider';
+import { inter } from '@/lib/font';
 import { i18n, isLocale } from '@/lib/i18n';
 import { translations } from '@/lib/layout.shared';
 import { appName, siteUrl } from '@/lib/shared';
 import '../global.css';
-
-// Fetched at build time and served from this site, so pages load nothing from
-// Google.
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-});
 
 export const dynamicParams = false;
 
@@ -23,7 +16,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata(props: LayoutProps<'/[lang]'>): Promise<Metadata> {
   const { lang } = await props.params;
-  const title = lang === 'zh' ? 'Sekai Beyond 开发者文档' : appName;
+  if (!isLocale(lang)) notFound();
+  const title = appName[lang];
 
   return {
     metadataBase: new URL(siteUrl),
@@ -38,7 +32,7 @@ export default async function Layout({ params, children }: LayoutProps<'/[lang]'
 
   return (
     <html lang={lang === 'zh' ? 'zh-CN' : 'en'} className={inter.variable} suppressHydrationWarning>
-      <body className="flex flex-col min-h-screen">
+      <body className="flex min-h-screen flex-col">
         <Provider i18n={i18nProvider(translations, lang)}>{children}</Provider>
       </body>
     </html>

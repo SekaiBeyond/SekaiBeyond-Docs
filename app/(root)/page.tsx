@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import { appName } from '@/lib/shared';
 
 export const metadata: Metadata = {
-  title: 'Sekai Beyond Developers',
+  title: appName.en,
   icons: '/favicon.ico',
 };
 
@@ -16,7 +17,7 @@ export default function Page() {
       {/* biome-ignore lint/security/noDangerouslySetInnerHtml: a constant script, with nothing from the URL or the reader in it */}
       <script dangerouslySetInnerHTML={{ __html: redirect }} />
       <img src="/mika.webp" alt="" width={56} height={56} className="rounded-full" />
-      <h1 className="text-xl font-semibold">Sekai Beyond Developers</h1>
+      <h1 className="text-xl font-semibold">{appName.en}</h1>
       <p className="flex gap-4">
         <a className="text-fd-primary underline" href="/en">
           English
