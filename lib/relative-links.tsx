@@ -13,16 +13,16 @@ const languageFolder = new RegExp(`^(${i18n.languages.join('|')})/`);
  * at that page in the reader's language.
  */
 export function createRelativeLinks(page: Page) {
-  // Fumadocs looks pages up by their path within a language, but with the dir
-  // parser page.path still starts with the language's folder (en/…), so a
-  // relative link from it never matches. Resolve from the path without it.
-  const from = { ...page, path: page.path.replace(languageFolder, '') };
+    // Fumadocs looks pages up by their path within a language, but with the dir
+    // parser page.path still starts with the language's folder (en/…), so a
+    // relative link from it never matches. Resolve from the path without it.
+    const from = { ...page, path: page.path.replace(languageFolder, '') };
 
-  return {
-    a: createRelativeLink(source, from),
-    // biome-ignore lint/correctness/noComponentHookFactories: bound to this page, as Fumadocs' createRelativeLink is
-    Card: ({ href, ...props }: ComponentProps<typeof Card>) => (
-      <Card href={href ? source.resolveHref(href, from) : href} {...props} />
-    ),
-  };
+    return {
+        a: createRelativeLink(source, from),
+        // biome-ignore lint/correctness/noComponentHookFactories: bound to this page, as Fumadocs' createRelativeLink is
+        Card: ({ href, ...props }: ComponentProps<typeof Card>) => (
+            <Card href={href ? source.resolveHref(href, from) : href} {...props} />
+        ),
+    };
 }

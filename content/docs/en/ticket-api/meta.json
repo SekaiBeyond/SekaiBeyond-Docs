@@ -2,5 +2,11 @@
   "title": "Ticket API",
   "description": "Selling tickets from another app",
   "root": true,
-  "pages": ["index", "getting-started", "keys", "mainland-china", "admin-panel"]
+  "pages": [
+    "index",
+    "getting-started",
+    "keys",
+    "mainland-china",
+    "admin-panel"
+  ]
 }

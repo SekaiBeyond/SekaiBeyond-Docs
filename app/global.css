@@ -6,62 +6,61 @@
    page with neutral surfaces. In light mode both are deepened so text keeps
    4.5:1 contrast on white; dark mode uses them nearly as they are. */
 @theme {
-  --color-fd-background: #fff;
-  --color-fd-card: #fff;
-  --color-fd-muted: hsl(240, 5%, 96.5%);
-  --color-fd-secondary: hsl(240, 5%, 95.5%);
-  --color-fd-popover: #fff;
-  --color-fd-border: hsl(240, 6%, 90%);
-  --color-fd-primary: #d32257;
-  --color-fd-primary-foreground: #fff;
-  --color-fd-ring: #efc0cf;
+    --color-fd-background: #fff;
+    --color-fd-card: #fff;
+    --color-fd-muted: hsl(240, 5%, 96.5%);
+    --color-fd-secondary: hsl(240, 5%, 95.5%);
+    --color-fd-popover: #fff;
+    --color-fd-border: hsl(240, 6%, 90%);
+    --color-fd-primary: #d32257;
+    --color-fd-primary-foreground: #fff;
+    --color-fd-ring: #efc0cf;
 
-  /* The hair itself, for touches that carry no text. */
-  --color-mika-pink: #efc0cf;
-  --color-mika-mint: #9ccdc0;
-  /* Mint deep enough for text, the second accent beside the pink. */
-  --color-mint: #2d7665;
+    /* The hair itself, for touches that carry no text. */
+    --color-mika-pink: #efc0cf;
+    --color-mika-mint: #9ccdc0;
+    /* Mint deep enough for text, the second accent beside the pink. */
+    --color-mint: #2d7665;
 
-  --color-method-get: #2d7665;
-  --color-method-post: #1d4ed8;
+    --color-method-get: #2d7665;
+    --color-method-post: #1d4ed8;
 
-  --font-sans:
-    var(--font-inter), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", ui-sans-serif, system-ui,
+    --font-sans: var(--font-inter), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", ui-sans-serif, system-ui,
     sans-serif;
 }
 
 .dark {
-  --color-fd-background: hsl(335, 10%, 8%);
-  --color-fd-card: hsl(335, 12%, 11%);
-  --color-fd-muted: hsl(335, 10%, 14%);
-  --color-fd-secondary: hsl(335, 10%, 15%);
-  --color-fd-popover: hsl(335, 12%, 11%);
-  --color-fd-border: hsla(342, 30%, 60%, 22%);
-  --color-fd-primary: #f5a3bd;
-  --color-fd-primary-foreground: hsl(335, 10%, 8%);
+    --color-fd-background: hsl(335, 10%, 8%);
+    --color-fd-card: hsl(335, 12%, 11%);
+    --color-fd-muted: hsl(335, 10%, 14%);
+    --color-fd-secondary: hsl(335, 10%, 15%);
+    --color-fd-popover: hsl(335, 12%, 11%);
+    --color-fd-border: hsla(342, 30%, 60%, 22%);
+    --color-fd-primary: #f5a3bd;
+    --color-fd-primary-foreground: hsl(335, 10%, 8%);
 
-  --color-mint: #97d8c8;
-  --color-method-get: #97d8c8;
-  --color-method-post: #93b4fd;
+    --color-mint: #97d8c8;
+    --color-method-get: #97d8c8;
+    --color-method-post: #93b4fd;
 }
 
 ::selection {
-  background-color: color-mix(in srgb, var(--color-mika-mint) 55%, transparent);
+    background-color: color-mix(in srgb, var(--color-mika-mint) 55%, transparent);
 }
 
 html {
-  scrollbar-gutter: stable;
+    scrollbar-gutter: stable;
 }
 
 /* Error codes and field names stay whole; a narrow table scrolls instead. */
 .prose td code {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 
 /* The scroll lock sets these inline, so only !important overrides them. */
 html > body[data-scroll-locked] {
-  /* biome-ignore lint/complexity/noImportantStyles: overrides an inline style */
-  margin-right: 0px !important;
-  /* biome-ignore lint/complexity/noImportantStyles: overrides an inline style */
-  --removed-body-scroll-bar-size: 0px !important;
+    /* biome-ignore lint/complexity/noImportantStyles: overrides an inline style */
+    margin-right: 0px !important;
+    /* biome-ignore lint/complexity/noImportantStyles: overrides an inline style */
+    --removed-body-scroll-bar-size: 0px !important;
 }

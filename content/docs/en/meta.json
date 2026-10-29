@@ -1,3 +1,7 @@
 {
-  "pages": ["ticket-api", "api-reference", "website"]
+  "pages": [
+    "ticket-api",
+    "api-reference",
+    "website"
+  ]
 }

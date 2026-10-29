@@ -4,26 +4,26 @@ import { defineDocs } from 'fumadocs-mdx/macro';
 import { i18n } from '@/lib/i18n';
 
 const docs = defineDocs({
-  dir: 'content/docs',
-  docs: {
-    schema: pageSchema,
-    postprocess: {
-      includeProcessedMarkdown: true,
+    dir: 'content/docs',
+    docs: {
+        schema: pageSchema,
+        postprocess: {
+            includeProcessedMarkdown: true,
+        },
     },
-  },
-  meta: {
-    schema: metaSchema,
-  },
+    meta: {
+        schema: metaSchema,
+    },
 });
 
 export const source = loader({
-  baseUrl: '/',
-  source: docs.toFumadocsSource(),
-  i18n,
+    baseUrl: '/',
+    source: docs.toFumadocsSource(),
+    i18n,
 });
 
 export const docsLlms = llms(source, {
-  renderPage: async (page) => `# ${page.data.title} (${page.url})
+    renderPage: async (page) => `# ${page.data.title} (${page.url})
 
 ${await page.data.getText('processed')}`,
 });
