@@ -28,12 +28,12 @@ npm run dev
 
 Then open http://localhost:3000/en.
 
-| Command               | Does                                                                          |
-| --------------------- | ----------------------------------------------------------------------------- |
-| `npm run dev`         | Serve the site with hot reload                                                |
-| `npm run build`       | Build the static site into `out/`                                             |
-| `npm run types:check` | Check types, including MDX frontmatter                                        |
-| `npm run lint`        | Lint and check formatting with Biome                                          |
+| Command               | Does                                   |
+| --------------------- | -------------------------------------- |
+| `npm run dev`         | Serve the site with hot reload         |
+| `npm run build`       | Build the static site into `out/`      |
+| `npm run types:check` | Check types, including MDX frontmatter |
+| `npm run lint`        | Lint and check formatting with Biome   |
 
 ## Where things are
 
@@ -64,8 +64,8 @@ Every push to `main` builds the site and publishes `out/` to GitHub Pages (see [
 
 The site is served at `docs.sekaibeyond.com`, set under **Settings > Pages > Custom domain**, by a DNS record on Cloudflare:
 
-| Type | Name | Target | Proxy |
-|---|---|---|---|
+| Type    | Name   | Target                  | Proxy    |
+| ------- | ------ | ----------------------- | -------- |
 | `CNAME` | `docs` | `sekaibeyond.github.io` | DNS only |
 
 Leave it DNS only: GitHub issues the HTTPS certificate itself, which it can't do behind Cloudflare's proxy.
