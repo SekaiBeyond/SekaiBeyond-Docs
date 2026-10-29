@@ -15,7 +15,7 @@
 
 ---
 
-The source of [docs.sekaibeyond.com](https://docs.sekaibeyond.com), in English and Simplified Chinese. It's a static site built with [Fumadocs](https://fumadocs.dev) on Next.js and served by Cloudflare.
+The source of [docs.sekaibeyond.com](https://docs.sekaibeyond.com), in English and Simplified Chinese. It's a static site built with [Fumadocs](https://fumadocs.dev) on Next.js and served by GitHub Pages.
 
 ## Running it
 
@@ -34,7 +34,6 @@ Then open http://localhost:3000/en.
 | `npm run build`       | Build the static site into `out/`                                             |
 | `npm run types:check` | Check types, including MDX frontmatter                                        |
 | `npm run lint`        | Lint and check formatting with Biome                                          |
-| `npm run deploy`      | Build and deploy to Cloudflare by hand (needs `npx -y wrangler@4 login` once) |
 
 ## Where things are
 
@@ -61,13 +60,12 @@ Each folder's `meta.json` sets its sidebar title and page order. A folder with `
 
 ## Deploying
 
-Every push to `main` builds the site and deploys `out/` to Cloudflare as the `sekaibeyond-docs` Worker, on `docs.sekaibeyond.com` (see [`wrangler.toml`](wrangler.toml) and [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)). Pull requests only build it.
+Every push to `main` builds the site and publishes `out/` to GitHub Pages (see [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)). Pull requests only build it. Nothing needs setting up in the repo: the workflow publishes with GitHub's own token.
 
-The workflow needs two repository secrets, under **Settings > Secrets and variables > Actions**:
+The site is served at `docs.sekaibeyond.com`, set under **Settings > Pages > Custom domain**, by a DNS record on Cloudflare:
 
-| Secret                  | Value                                                                                             |
-| ----------------------- | ------------------------------------------------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`  | An API token from the **Edit Cloudflare Workers** template, limited to the `sekaibeyond.com` zone |
-| `CLOUDFLARE_ACCOUNT_ID` | The account ID shown on the Cloudflare dashboard's overview                                       |
+| Type | Name | Target | Proxy |
+|---|---|---|---|
+| `CNAME` | `docs` | `sekaibeyond.github.io` | DNS only |
 
-The first deploy creates `docs.sekaibeyond.com`'s DNS record and certificate. Like the API relay, the site isn't on `*.workers.dev`, which mainland China blocks, and loads nothing from Google at runtime: the font is served from the site itself.
+Leave it DNS only: GitHub issues the HTTPS certificate itself, which it can't do behind Cloudflare's proxy.

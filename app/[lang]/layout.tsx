@@ -8,8 +8,8 @@ import { translations } from '@/lib/layout.shared';
 import { appName, siteUrl } from '@/lib/shared';
 import '../global.css';
 
-// Fetched at build time and served from this site, so nothing is loaded from
-// Google, which mainland China can't reach.
+// Fetched at build time and served from this site, so pages load nothing from
+// Google.
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',

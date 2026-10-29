@@ -4,7 +4,7 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
-  // A fully static site in out/, served by Cloudflare (see wrangler.toml).
+  // A fully static site in out/, served by GitHub Pages at docs.sekaibeyond.com.
   output: 'export',
   reactStrictMode: true,
   experimental: {

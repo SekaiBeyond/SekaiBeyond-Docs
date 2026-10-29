@@ -11,9 +11,6 @@
 /build
 *.tsbuildinfo
 
-# Cloudflare
-.wrangler
-
 # misc
 .DS_Store
 .idea

@@ -7,8 +7,7 @@
     "start": "serve out",
     "types:check": "next typegen && tsc --noEmit",
     "lint": "biome check",
-    "format": "biome format --write",
-    "deploy": "npm run build && npx -y wrangler@4 deploy"
+    "format": "biome format --write"
   },
   "dependencies": {
     "@fumadocs/language": "^0.2.17",
