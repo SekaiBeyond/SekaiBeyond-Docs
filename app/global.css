@@ -2,23 +2,27 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 
-/* Warm paper tones with the site's pink, deepened in light mode so links keep
-   4.5:1 contrast. The site's own #ff6b9d is used as is in dark mode. */
+/* Mika's hair: pastel pink on top, mint at the tips. Pink leads, on a white
+   page with blush surfaces. In light mode both are deepened so text keeps 4.5:1
+   contrast, on white and on blush; dark mode uses them nearly as they are. */
 @theme {
-  --color-fd-background: hsl(40, 33%, 98%);
-  --color-fd-card: hsl(40, 25%, 96%);
-  --color-fd-muted: hsl(40, 18%, 94%);
-  --color-fd-secondary: hsl(40, 18%, 93%);
-  --color-fd-popover: hsl(40, 33%, 99%);
-  --color-fd-border: hsla(30, 10%, 70%, 45%);
-  --color-fd-primary: #c2185b;
+  --color-fd-background: #fff;
+  --color-fd-card: hsl(342, 70%, 97.5%);
+  --color-fd-muted: hsl(342, 60%, 96%);
+  --color-fd-secondary: hsl(342, 55%, 95%);
+  --color-fd-popover: #fff;
+  --color-fd-border: hsla(342, 50%, 80%, 50%);
+  --color-fd-primary: #d32257;
   --color-fd-primary-foreground: #fff;
-  --color-fd-ring: #ff6b9d;
-  --color-sb-pink: #ff6b9d;
-  --color-sb-orange: #ff8e53;
-  --color-sb-yellow: #feca57;
+  --color-fd-ring: #efc0cf;
 
-  --color-method-get: #15803d;
+  /* The hair itself, for touches that carry no text. */
+  --color-mika-pink: #efc0cf;
+  --color-mika-mint: #9ccdc0;
+  /* Mint deep enough for text, the second accent beside the pink. */
+  --color-mint: #2d7665;
+
+  --color-method-get: #2d7665;
   --color-method-post: #1d4ed8;
 
   --font-sans:
@@ -27,16 +31,22 @@
 }
 
 .dark {
-  --color-fd-background: hsl(30, 6%, 8%);
-  --color-fd-card: hsl(30, 5%, 11%);
-  --color-fd-muted: hsl(30, 5%, 13%);
-  --color-fd-secondary: hsl(30, 5%, 14%);
-  --color-fd-popover: hsl(30, 5%, 11%);
-  --color-fd-primary: #ff6b9d;
-  --color-fd-primary-foreground: hsl(30, 6%, 8%);
+  --color-fd-background: hsl(335, 10%, 8%);
+  --color-fd-card: hsl(335, 12%, 11%);
+  --color-fd-muted: hsl(335, 10%, 14%);
+  --color-fd-secondary: hsl(335, 10%, 15%);
+  --color-fd-popover: hsl(335, 12%, 11%);
+  --color-fd-border: hsla(342, 30%, 60%, 22%);
+  --color-fd-primary: #f5a3bd;
+  --color-fd-primary-foreground: hsl(335, 10%, 8%);
 
-  --color-method-get: #4ade80;
-  --color-method-post: #60a5fa;
+  --color-mint: #97d8c8;
+  --color-method-get: #97d8c8;
+  --color-method-post: #93b4fd;
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-mika-mint) 55%, transparent);
 }
 
 html {

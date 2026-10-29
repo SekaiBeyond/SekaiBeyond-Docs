@@ -57,7 +57,7 @@ export function Endpoint({ method, path, scope }: { method: Method; path: string
       <code className="font-mono text-sm break-all">
         {parts.map(({ text, at }) =>
           text.startsWith('{') ? (
-            <span key={at} className="text-fd-primary">
+            <span key={at} className="text-mint">
               {text}
             </span>
           ) : (
@@ -163,7 +163,7 @@ export function Param({
         <code className="font-mono text-sm font-semibold text-fd-foreground">{name}</code>
         <span className="font-mono text-xs text-fd-muted-foreground">{type}</span>
         {required && (
-          <span className="rounded-md bg-sb-orange/15 px-1.5 py-0.5 text-[0.7rem] font-medium text-[#b45309] dark:text-sb-orange">
+          <span className="rounded-md bg-fd-primary/10 px-1.5 py-0.5 text-[0.7rem] font-medium text-fd-primary">
             <ApiLabel name="required" />
           </span>
         )}

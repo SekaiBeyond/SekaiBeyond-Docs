@@ -74,7 +74,7 @@ export default async function HomePage({ params }: PageProps<'/[lang]'>) {
     <main className="mx-auto w-full max-w-6xl px-4 py-16 md:px-6 md:py-24">
       <section className="max-w-3xl">
         <p className="mb-4 inline-flex items-center gap-2 rounded-full border bg-fd-card px-3 py-1 text-sm text-fd-muted-foreground">
-          <span className="size-2 rounded-full bg-linear-to-r from-sb-pink to-sb-orange" />
+          <span className="size-2.5 rounded-full bg-linear-to-b from-mika-pink to-mika-mint" />
           {c.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">{c.title}</h1>
