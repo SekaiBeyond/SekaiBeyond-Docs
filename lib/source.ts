@@ -1,7 +1,8 @@
 import { llms, loader } from 'fumadocs-core/source';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
 import { defineDocs } from 'fumadocs-mdx/macro';
-import { i18n } from '@/lib/i18n';
+import { i18n, isLocale } from '@/lib/i18n';
+import { renderApiComponents } from '@/lib/llms';
 
 const docs = defineDocs({
     dir: 'content/docs',
@@ -23,7 +24,10 @@ export const source = loader({
 });
 
 export const docsLlms = llms(source, {
-    renderPage: async (page) => `# ${page.data.title} (${page.url})
+    renderPage: async (page) => {
+        const locale = page.locale && isLocale(page.locale) ? page.locale : i18n.defaultLanguage;
+        return `# ${page.data.title} (${page.url})
 
-${await page.data.getText('processed')}`,
+${renderApiComponents(await page.data.getText('processed'), locale)}`;
+    },
 });

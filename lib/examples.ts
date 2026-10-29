@@ -3,6 +3,8 @@
 
 export type Method = 'GET' | 'POST';
 
+export const statusText: Record<number, string> = { 200: 'OK', 201: 'Created' };
+
 export interface Operation {
     method: Method;
     /** With example values filled in, as a caller would send it. */

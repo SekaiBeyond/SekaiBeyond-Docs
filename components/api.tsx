@@ -10,10 +10,8 @@ import {
 import type { ReactNode } from 'react';
 import { ApiLabel } from '@/components/api-label';
 import { cn } from '@/lib/cn';
-import { examples, type Method, objectExamples, type OperationId } from '@/lib/examples';
+import { examples, type Method, objectExamples, type OperationId, statusText } from '@/lib/examples';
 import { requestSnippets } from '@/lib/snippets';
-
-const statusText: Record<number, string> = { 200: 'OK', 201: 'Created' };
 
 // The same themes as the MDX code blocks. With no default color, every color
 // is a CSS variable, which Fumadocs switches with the site's theme.
