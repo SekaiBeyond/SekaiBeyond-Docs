@@ -1,0 +1,47 @@
+---
+title: API reference
+description: Base URLs, authentication and conventions, and every endpoint.
+---
+
+## Base URLs
+
+```
+https://api.sekaibeyond.com     (works from mainland China; see the relay)
+https://sekaibeyond.com/api     (everywhere else)
+```
+
+Both take the same paths and answer the same way. See [Calling from mainland China](../ticket-api/mainland-china.mdx) for the relay.
+
+## Authentication
+
+Every request carries the key:
+
+```
+Authorization: Bearer sbk_…
+Content-Type: application/json      (POST only)
+```
+
+Keys are made by core-staff in the admin panel. See [API keys](../ticket-api/keys.mdx).
+
+## Conventions
+
+- **JSON in and out,** in UTF-8.
+- **Timestamps** are ISO 8601 in UTC, such as `2026-11-14T18:00:00.000Z`, or `null` when not set.
+- **Text fields** are `""` when not set, never `null`. Each Chinese field (ending in `Cn`) may be `""`; the site then shows the English one.
+- **Fields may be added over time,** so ignore any you don't know.
+
+## Endpoints
+
+| Endpoint | Scope | What it does |
+|---|---|---|
+| [`GET /v1/events`](./list-events.mdx) | `events:read` | List every event, archived ones included |
+| [`GET /v1/events/{eventId}`](./get-event.mdx) | `events:read` | Get one event, such as to check it just before taking payment |
+| [`POST /v1/events/{eventId}/orders`](./create-order.mdx) | `tickets:write` | Issue an order's tickets once it's paid |
+| [`GET /v1/events/{eventId}/orders/{orderId}`](./get-order.mdx) | `tickets:read` | Get an order, with whether each ticket has been used |
+
+What they return:
+
+- [The Event object](./event.mdx): both kinds of event the site has, unarchived and archived, and their fields
+- [The Order object](./order.mdx): an order and its tickets
+
+Prices stay in the seller's app, since events don't store them.

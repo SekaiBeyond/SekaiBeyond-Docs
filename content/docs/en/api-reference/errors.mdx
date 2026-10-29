@@ -1,0 +1,40 @@
+---
+title: Errors
+description: The one shape every error comes in, and the codes any endpoint can return.
+---
+
+Errors come in one shape:
+
+```json
+{"error": {"code": "event-ended", "message": "This event has ended."}}
+```
+
+There's one exception, which only happens when calling `sekaibeyond.com/api` directly. A body sent as `application/json` that isn't a JSON object or array never reaches the API: Google's servers turn it away with a bare HTML `400`. That covers malformed JSON and bare strings, numbers or `null`. Through `api.sekaibeyond.com`, the relay catches it first and answers `400 invalid-request` in the usual shape.
+
+Branch on `code`. `message` is for people, and its wording may change. Each endpoint's page lists its own errors.
+
+## Every endpoint
+
+Every endpoint can also return these:
+
+| Status | Code | When |
+|---|---|---|
+| 401 | `missing-api-key` | There's no `Authorization: Bearer` header. |
+| 401 | `invalid-api-key` | The key isn't one of ours, or has been revoked. |
+| 401 | `api-key-expired` | The key has expired. |
+| 403 | `missing-scope` | The key lacks the scope the endpoint needs. |
+| 404 | `not-found` | No such endpoint. |
+| 405 | `method-not-allowed` | Wrong method. The `Allow` header names the right one. |
+| 429 | `rate-limited` | Over 120 calls a minute. `Retry-After` says how many seconds to wait. |
+| 500 | `internal` | Something went wrong on our side. Try again. |
+
+## From the relay
+
+The relay adds these of its own, in the same shape:
+
+| Status | Code | When |
+|---|---|---|
+| 400 | `invalid-request` | A body sent as `application/json` isn't a JSON object or array. |
+| 413 | `payload-too-large` | The request body is over 64 KiB. |
+| 502 | `upstream-unavailable` | The API couldn't be reached. |
+| 504 | `upstream-timeout` | The API took over 30 seconds. |

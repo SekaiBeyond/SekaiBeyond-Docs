@@ -1,0 +1,40 @@
+---
+title: 获取订单
+description: 获取通过 API 创建的订单，以及每张门票是否已使用。
+full: true
+---
+
+<Endpoint method="GET" path="/v1/events/{eventId}/orders/{orderId}" scope="tickets:read" />
+
+<ApiPage operation="getOrder">
+
+返回通过 API 创建的订单及每张门票的状态：是否已在入口扫码，或已被工作人员作废。无论活动是否已归档都可以调用。
+
+没有列出某位买家所有订单的接口。销售方的应用本来就知道它的每位用户创建了哪些订单。要检查变化，比较订单的 `updatedAt` 即可，它在任何扫码、作废或工作人员编辑时都会更新。
+
+## 路径参数
+
+<Params>
+<Param name="eventId" type="string" required>
+订单所属的活动。
+</Param>
+<Param name="orderId" type="string" required>
+你的订单号，即用同一销售方 ID 的密钥发送给[创建订单](./create-order.mdx)的订单号。
+</Param>
+</Params>
+
+## 返回
+
+**200**，返回 [Order](./order.mdx)。
+
+## 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|---|---|---|
+| 403 | `event-not-allowed` | 密钥限定于其他活动。 |
+| 404 | `event-not-found` | 没有这个 ID 的活动。 |
+| 404 | `order-not-found` | 该活动没有你的销售方 ID 通过 API 创建的这个订单号的订单。 |
+
+以及所有端点都可能返回的错误，见[错误](./errors.mdx)。
+
+</ApiPage>

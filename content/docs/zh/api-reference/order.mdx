@@ -1,0 +1,81 @@
+---
+title: Order 对象
+description: 订单及其门票。
+---
+
+[创建订单](./create-order.mdx)和[获取订单](./get-order.mdx)返回的对象。
+
+一笔订单是一位买家为一个活动购买的门票，使用销售方自己的订单号创建。活动归档后订单仍可读取。
+
+## 字段
+
+<Params>
+<Param name="orderId" type="string">
+销售方的订单号，即创建订单时发送的订单号。只在该销售方 ID 内唯一。
+</Param>
+<Param name="eventId" type="string">
+门票所属的活动。
+</Param>
+<Param name="createdAt" type="string">
+订单创建时间。
+</Param>
+<Param name="updatedAt" type="string">
+订单最后一次发生变化的时间：扫码、作废、工作人员编辑或邮件发出。比较它即可判断是否需要重新查看。
+</Param>
+<Param name="buyer" type="object">
+购票人。
+
+<Properties>
+<Param name="name" type="string">
+姓名，即发送时的值，除非工作人员之后修改过。
+</Param>
+<Param name="email" type="string">
+邮箱，已转为小写；未发送则为 `""`。
+</Param>
+</Properties>
+</Param>
+<Param name="emailStatus" type="string">
+我们是否已把门票通过邮件发给买家。订单没有要求时（没有 `sendEmail: true`）为 `not-requested`；否则为 `sent`、`queued`（超出每日额度，会在额度空出时发出）、`unsent`（未发出：工作人员可在管理后台发送）或 `unconfirmed`（仍在发送中，或可能已发出也可能没有：工作人员会先核实再重发）。见[发送门票邮件](./create-order.mdx#发送门票邮件)。
+</Param>
+<Param name="ticketCount" type="number">
+订单包含的门票数量，包括已作废的。
+</Param>
+<Param name="tickets" type="Ticket[]">
+门票，按票种分组，顺序为：`normal`、`early-bird`、`student`、`early-bird-student`、`vip`。见 [Ticket 对象](#ticket-对象)。
+</Param>
+</Params>
+
+## Ticket 对象
+
+<Params>
+<Param name="ticketId" type="string">
+门票 ID，一个 UUID。
+</Param>
+<Param name="type" type="string">
+票种：可售票种之一（`normal`、`early-bird`、`student`、`early-bird-student`、`vip`）。工作人员可以在管理后台把门票改为官网的任意票种，其中还包括 `Comp Ticket`、`guest` 和 `vendor`。
+</Param>
+<Param name="qr" type="string">
+作为门票二维码展示的内容，请原样使用。它是给工作人员用的链接：入口扫码器读取它，已登录的工作人员打开它即可放行该门票。它不是给买家看的页面。
+</Param>
+<Param name="status" type="string">
+`valid`、`used` 或 `voided`，是下面各标志的汇总：先扫码后作废的门票为 `voided`。
+</Param>
+<Param name="createdAt" type="string">
+门票签发时间。
+</Param>
+<Param name="redeemed" type="boolean">
+是否已在入口扫码。工作人员可以撤销扫码，此时它会变回 `false`。
+</Param>
+<Param name="redeemedAt" type="string | null">
+扫码时间，或 `null`。
+</Param>
+<Param name="voided" type="boolean">
+是否已被工作人员作废，例如因为退款。已作废的门票不能入场。
+</Param>
+</Params>
+
+## 示例
+
+活动当晚的一笔订单，第一张门票已在入口扫码：
+
+<ObjectExample name="order" />

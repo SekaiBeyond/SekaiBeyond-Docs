@@ -1,0 +1,6 @@
+{
+  "title": "门票 API",
+  "description": "在其他应用中售票",
+  "root": true,
+  "pages": ["index", "getting-started", "keys", "mainland-china", "admin-panel"]
+}

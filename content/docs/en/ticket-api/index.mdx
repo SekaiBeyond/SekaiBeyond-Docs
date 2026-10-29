@@ -1,0 +1,42 @@
+---
+title: Ticket API
+description: Read our events and sell tickets for the paid ones from another app's server.
+---
+
+Lets another app's server read our events and sell tickets for the paid ones. Tickets sold this way go on the event's attendee list, scan at the door like any other, and show in the buyer's **My Tickets** on the site when the order carries their email. An order can also ask us to email the buyer their tickets.
+
+<Callout type="warn" title="It's an admin-level API, not one for ordinary users.">
+  A key sees events as core-staff do in the admin panel, unpublished ones included. So keys go only to our own systems and to partners' servers we trust.
+</Callout>
+
+The API returns everything the site itself reads and leaves the filtering to the caller. Its events are both kinds the site has, unarchived and archived, each with the site's own fields.
+
+## What it does
+
+| Endpoint | Scope | What it does |
+|---|---|---|
+| [`GET /v1/events`](../api-reference/list-events.mdx) | `events:read` | List every event, archived ones included |
+| [`GET /v1/events/{eventId}`](../api-reference/get-event.mdx) | `events:read` | Get one event, such as to check it just before taking payment |
+| [`POST /v1/events/{eventId}/orders`](../api-reference/create-order.mdx) | `tickets:write` | Issue an order's tickets once it's paid |
+| [`GET /v1/events/{eventId}/orders/{orderId}`](../api-reference/get-order.mdx) | `tickets:read` | Get an order, with whether each ticket has been used |
+
+Prices stay in the seller's app, since events don't store them.
+
+## Where to next
+
+<Cards>
+  <Card title="Getting started" href="./getting-started.mdx">
+    From a new key to a first order, step by step.
+  </Card>
+  <Card title="API keys" href="./keys.mdx">
+    Scopes, seller IDs, expiry and the rate limit.
+  </Card>
+  <Card title="Calling from mainland China" href="./mainland-china.mdx">
+    The relay at `api.sekaibeyond.com`, and how well it's reached.
+  </Card>
+  <Card title="API reference" href="../api-reference/index.mdx">
+    Every endpoint, object and error.
+  </Card>
+</Cards>
+
+The code is [`functions/src/functions/api.ts`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/functions/src/functions/api.ts).

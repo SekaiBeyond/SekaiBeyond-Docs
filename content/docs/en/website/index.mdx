@@ -1,0 +1,30 @@
+---
+title: Website
+description: How sekaibeyond.com is built, tested and deployed, for its contributors.
+---
+
+These pages are for people working on [SekaiBeyond-Web](https://github.com/SekaiBeyond/SekaiBeyond-Web), the source of the official Sekai Beyond website. Its README covers cloning, installing and the npm scripts; how to send a change is in its [CONTRIBUTING.md](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/CONTRIBUTING.md).
+
+## Tech stack
+
+| Technology | Purpose |
+|---|---|
+| [React](https://react.dev/) | UI Framework |
+| [React Router](https://reactrouter.com/) | Framework & Routing |
+| [TypeScript](https://www.typescriptlang.org/) | Type Safety |
+| [Vite](https://vitejs.dev/) | Build Tool |
+| [Firebase](https://firebase.google.com/) | Auth, Firestore, Cloud Storage, Cloud Functions |
+
+## Pages
+
+| Page | Covers |
+|---|---|
+| [Testing with the Emulators](./emulators.mdx) | Running the site locally against Firebase emulators |
+| [Deployment](./deploy.mdx) | First-time Firebase setup, GitHub secrets, and the deploy workflow |
+| [Ticket Email](./email.mdx) | Sending ticket emails through Resend |
+| [App Check](./app-check.mdx) | reCAPTCHA v3 protection for Firestore, Storage, and Functions |
+| [Firestore Indexes and TTL Policies](./firestore.mdx) | The composite indexes and TTL policies the app needs |
+| [User Groups](./user-groups.mdx) | Roles, admin access, the first president, and membership |
+| [Deploying the API relay](./api-relay.mdx) | The ticket API's Cloudflare relay for mainland China |
+
+The ticket API itself has its own tabs: [Ticket API](../ticket-api/index.mdx) and [API Reference](../api-reference/index.mdx).

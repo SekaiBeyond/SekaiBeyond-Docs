@@ -1,0 +1,17 @@
+{
+  "title": "API Reference",
+  "description": "Endpoints, objects and errors",
+  "root": true,
+  "pages": [
+    "index",
+    "errors",
+    "---Events---",
+    "list-events",
+    "get-event",
+    "event",
+    "---Orders---",
+    "create-order",
+    "get-order",
+    "order"
+  ]
+}

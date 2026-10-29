@@ -1,0 +1,65 @@
+---
+title: 快速上手
+description: 从拿到密钥到第一笔订单，一步一步来。
+---
+
+<Steps>
+<Step>
+
+### 获取密钥
+
+核心成员及以上可以在管理后台的「工具 > API 密钥」中创建密钥。请向他们申请一个密钥，注明你的应用需要的权限范围，以及应用自己的销售方 ID，例如 `cn-app`。各项设置的含义见 [API 密钥](./keys.mdx)。
+
+密钥只在创建时显示一次。只把它放在你的服务器上，绝不要放进移动应用、小程序或网页；在代码中通过环境变量读取：
+
+```bash
+export SEKAI_API_KEY="sbk_…"
+```
+
+新密钥在创建后几秒内生效，而不是立即生效。在此之前它会返回 `invalid-api-key`，所以创建后马上发起的第一次调用可能需要重试。
+
+</Step>
+<Step>
+
+### 列出活动
+
+[列出活动](../api-reference/list-events.mdx)返回密钥可见的所有活动：未归档和已归档的，已发布和未发布的。只向公众展示 `published: true` 的活动，只为 `onSale: true` 的活动接单。
+
+<RequestExample operation="listEvents" />
+
+中国大陆的服务器请调用 `https://api.sekaibeyond.com`，如上所示。其他地区也可以使用 `https://sekaibeyond.com/api`。详见[从中国大陆调用](./mainland-china.mdx)。
+
+</Step>
+<Step>
+
+### 收款前确认活动
+
+在买家付款之前，[获取该活动](../api-reference/get-event.mdx)并确认 `onSale` 仍为 `true`。活动结束、被归档或即将被删除时，它会变为 `false`。
+
+</Step>
+<Step>
+
+### 付款后签发门票
+
+使用你自己的订单号、买家信息和各票种的购买数量[创建订单](../api-reference/create-order.mdx)。加上 `sendEmail: true`，我们还会把门票通过邮件发给买家。
+
+<RequestExample operation="createOrder" />
+
+**重试是安全的。** 再次发送同一订单会返回它已有的门票。所以超时后请重新发送该订单，而不是放弃或换一个新订单号。
+
+</Step>
+<Step>
+
+### 展示门票
+
+**把每张门票的 `qr` 原样生成二维码展示。** 入口的扫码器读取的就是它。
+
+</Step>
+<Step>
+
+### 按需查看扫码情况
+
+[获取订单](../api-reference/get-order.mdx)，查看每张门票是否已在入口扫码，或已被工作人员作废。订单的 `updatedAt` 在任何扫码、作废或工作人员编辑时都会更新，比较它即可判断是否需要重新查看。
+
+</Step>
+</Steps>

@@ -1,0 +1,94 @@
+---
+title: 创建订单
+description: 买家付款后签发订单的门票。
+full: true
+---
+
+<Endpoint method="POST" path="/v1/events/{eventId}/orders" scope="tickets:write" />
+
+<ApiPage operation="createOrder">
+
+在买家付款后签发订单的门票。门票会进入活动的参会者名单，在入口像其他门票一样扫码入场；订单带有买家邮箱时，门票还会出现在买家在官网上的「我的门票」中。订单也可以要求把门票通过邮件发给买家，见[发送门票邮件](#发送门票邮件)。
+
+<Callout title="重试是安全的。">
+  再次发送同一订单会以 200 返回它已有的门票，即使活动已结束或已归档。「同一订单」指同一销售方（见 [API 密钥](../ticket-api/keys.mdx)）的同一 `orderId`、同一买家、各票种数量相同；各行如何拆分或排序无关紧要，`sendEmail` 也无关紧要：以第一次请求的选择为准，重试永远不会再次发送邮件。所以超时后请重新发送该订单，而不是放弃或换一个新订单号。
+</Callout>
+
+## 路径参数
+
+<Params>
+<Param name="eventId" type="string" required>
+活动 ID。该活动必须在售（[Event](./event.mdx) 上的 `onSale: true`）。未发布的活动也可以在售，因此测试活动可以在不出现在官网上的情况下接单。
+</Param>
+</Params>
+
+## 请求体
+
+<Params>
+<Param name="orderId" type="string" required>
+你自己的订单号，1–64 个字母、数字、`-` 和 `_`。此后它就是这笔订单的标识。订单号按销售方 ID 区分，因此其他应用的同号订单是另一笔订单。
+</Param>
+<Param name="buyer" type="object" required>
+购票人。
+
+<Properties>
+<Param name="name" type="string" required>
+姓名，最多 100 个字符。入口的工作人员会看到它。
+</Param>
+<Param name="email" type="string">
+邮箱。填写后，活动发布后门票还会出现在此人在官网上的「我的门票」中，扫码入场也会记到其账号上。
+</Param>
+</Properties>
+</Param>
+<Param name="tickets" type="object[]" required>
+一行或多行，总共 1–50 张门票。
+
+<Properties>
+<Param name="type" type="string" required>
+`normal`、`early-bird`、`student`、`early-bird-student` 或 `vip`。赠票、嘉宾票和摊主票由工作人员发放，不能售卖。
+</Param>
+<Param name="count" type="number" required>
+该票种的数量，至少为 1。
+</Param>
+</Properties>
+</Param>
+<Param name="sendEmail" type="boolean">
+设为 `true` 时由我们把门票通过邮件发到 `buyer.email`，此时必须提供该邮箱。默认为 `false`：由你的应用交付门票。见[发送门票邮件](#发送门票邮件)。
+</Param>
+</Params>
+
+## 返回
+
+**201**，返回新的 [Order](./order.mdx)；如果是重试，则以 **200** 返回已有的订单。
+
+**把每张门票的 `qr` 原样生成二维码展示。** 入口的扫码器读取的就是它。
+
+## 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|---|---|---|
+| 400 | `invalid-request` | 某个字段缺失或格式错误（消息中会指出是哪个字段），或 `sendEmail` 为 `true` 但没有 `buyer.email`。或者请求体不是 JSON 对象；直接发送到 `sekaibeyond.com/api` 时，这种情况会得到纯 HTML 的 400（见[错误](./errors.mdx)）。 |
+| 403 | `event-not-allowed` | 密钥限定于其他活动。 |
+| 404 | `event-not-found` | 没有这个 ID 的活动。 |
+| 409 | `order-conflict` | 你已经有一笔使用此 `orderId` 的订单，且内容不同。 |
+| 422 | `event-archived` | 活动已归档。 |
+| 422 | `event-not-paid` | 活动是免费的，没有门票。 |
+| 422 | `event-ended` | 活动已结束。 |
+| 422 | `event-pending-deletion` | 工作人员已申请删除该活动（其 `deleteAt` 已设置）。删除活动会连同其订单一起删除。 |
+| 422 | `unknown-ticket-type` | 某行的 `type` 不是可售票种。 |
+| 422 | `no-template` | `sendEmail` 为 `true`，但工作人员还没有保存该活动的门票邮件。 |
+| 422 | `no-contact-email` | `sendEmail` 为 `true`，而该活动的门票邮件会显示社团的联系邮箱，但联系邮箱尚未设置。 |
+
+同时不满足四项活动检查中多项的活动，返回表中最先列出的那一项。格式错误的请求体会在任何活动检查之前报告，两项邮件检查则在活动检查之后。以上错误都不会签发任何门票。以及所有端点都可能返回的错误，见[错误](./errors.mdx)。
+
+## 发送门票邮件
+
+设置 `sendEmail: true` 后，我们会把门票通过邮件发给买家：即该活动的门票邮件，与工作人员在管理后台发送的相同，每张门票附一个二维码。这些二维码与响应中各个 `qr` 是同一批门票，买家用哪个都可以，你的应用也仍然可以展示它们。
+
+- **邮件在响应返回之前发送**，Order 的 `emailStatus` 说明结果：`sent`、`queued`、`unsent` 或 `unconfirmed`。
+- **我们每天最多发送 100 封邮件**，与工作人员的发送共用额度。超过额度，或邮件服务商要求我们放慢速度时，邮件状态为 `queued`，会在额度空出时发出，每 30 分钟检查一次。
+- **`unsent` 表示邮件没有发出**，原因是邮件服务商拒绝了它，或者队列也满了。工作人员可以在管理后台发送它。稍后[获取订单](./get-order.mdx)即可查看是否已发出。
+- **`unconfirmed` 表示我们暂时不知道。** 要么第一次请求仍在发送（这期间的重试会读到这个状态），要么邮件服务商 10 秒内没有响应，邮件可能已发出，也可能没有。工作人员会先与买家核实，如果没有收到再发送，而不是冒着重复发送的风险。
+- **无论如何订单都已创建**，因为买家已经付款。不要为了重试邮件而再次创建订单：重试会返回同一订单，并且永远不会发送邮件。
+
+</ApiPage>

@@ -1,0 +1,29 @@
+---
+title: Deploying the API relay
+description: Deploying and trying the ticket API's Cloudflare relay for mainland China.
+---
+
+The relay is a Cloudflare Worker, [`cloudflare/api-relay`](https://github.com/SekaiBeyond/SekaiBeyond-Web/tree/main/cloudflare/api-relay), serving `api.sekaibeyond.com`. What it does and why is in [Calling from mainland China](../ticket-api/mainland-china.mdx).
+
+## Deploying it
+
+The Firebase deploy workflow doesn't touch it, so it's deployed by hand, by anyone with access to the `sekaibeyond.com` zone on Cloudflare:
+
+```bash
+cd cloudflare/api-relay
+npx -y wrangler@4 login     # once
+npx -y wrangler@4 deploy
+```
+
+The first deploy creates `api.sekaibeyond.com`'s DNS record and certificate. Deploy the Firebase side first: the relay calls the `/api/v1/**` Hosting route.
+
+## Trying it locally
+
+To try it locally against the emulators, run `npm run dev` in one terminal, then in another:
+
+```bash
+cd cloudflare/api-relay
+npx -y wrangler@4 dev --var "UPSTREAM:http://127.0.0.1:5001/demo-sekaibeyond/us-central1/api"
+```
+
+That serves it on http://localhost:8787.

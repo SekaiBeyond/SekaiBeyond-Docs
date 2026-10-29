@@ -1,0 +1,17 @@
+{
+  "title": "API 参考",
+  "description": "端点、对象与错误",
+  "root": true,
+  "pages": [
+    "index",
+    "errors",
+    "---活动---",
+    "list-events",
+    "get-event",
+    "event",
+    "---订单---",
+    "create-order",
+    "get-order",
+    "order"
+  ]
+}

@@ -1,0 +1,37 @@
+---
+title: 从中国大陆调用
+description: api.sekaibeyond.com 中转，以及它在大陆的可达性。
+---
+
+API 函数自身的地址位于 Google 的网络上，中国大陆的网络无法访问。大陆的销售方服务器请改为调用 `api.sekaibeyond.com`。它是一个 Cloudflare Worker，即 [`cloudflare/api-relay`](https://github.com/SekaiBeyond/SekaiBeyond-Web/tree/main/cloudflare/api-relay)，会把每个 `/v1/*` 请求转发到 `https://sekaibeyond.com/api/v1/*`：
+
+- **转发：** 仅 `Authorization`、`Content-Type`、`Accept`、`User-Agent` 和请求体。
+- **返回：** 仅响应的 `Content-Type`、`Allow` 和 `Retry-After`，外加 `Cache-Control: no-store`。
+- **不缓存。** 密钥、权限范围和速率限制都由 API 检查。中转本身只拒绝超过 64 KiB 的请求体，以及会被 Google 服务器拒收的 JSON 请求体（见[错误](../api-reference/errors.mdx)）。
+- **不使用 `*.workers.dev`：** 该域名在中国大陆被屏蔽，所以中转只部署在自己的域名上。
+
+## 可达性
+
+2026-10-28 通过 [Globalping](https://globalping.io) 从 25 个大陆探测点测试，覆盖阿里云、腾讯云、华为云，以及中国电信、联通和移动。
+
+| 目标 | 可达 | 典型耗时 |
+|---|---|---|
+| 中转 `api.sekaibeyond.com` | 24/25 | 约 1 秒；两条联通线路为 3–4 秒 |
+| API 函数自身的地址 | 0/25 | 所有探测点均连接超时 |
+| `sekaibeyond.com`（Firebase Hosting） | 25/25 | 约 0.7 秒 |
+
+Firebase Hosting 响应了所有探测点，因此其路由部署后，`sekaibeyond.com/api/v1/*` 也可能可以从大陆访问。在依赖它之前请先测试。中转仍是官方支持的接入方式。
+
+Cloudflare 企业版以下的套餐从中国境外为大陆访问者提供服务，因此高峰时段调用可能较慢。如果太慢，可以把 `api.sekaibeyond.com` 指向一台运行相同转发逻辑的香港服务器。API 和销售方的应用都无需任何改动。
+
+## 从大陆检查连通性
+
+检查中转是否可达不需要密钥：
+
+```bash
+curl -i https://api.sekaibeyond.com/v1/events
+```
+
+只要能连通，它会返回 `401` 和 `missing-api-key`。这个响应来自 API 本身，说明整条链路都是通的。要从大陆网络检查，可以把同一地址放到 [ITDOG](https://www.itdog.cn/http/) 等大陆测速服务中测试，然后再用密钥从应用的真实服务器上测试。
+
+中转的部署方法见 [Deploying the API relay](../website/api-relay.mdx)（英文）。

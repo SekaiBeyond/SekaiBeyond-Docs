@@ -1,0 +1,122 @@
+---
+title: Event 对象
+description: 官网的两类活动（未归档和已归档）及其字段。
+---
+
+[列出活动](./list-events.mdx)和[获取活动](./get-event.mdx)返回的对象。
+
+官网有两类活动，用 `archived` 区分：
+
+- **未归档**（`archived: false`）：即将开始、正在进行，或已结束但尚未归档。门票为这类活动售卖。
+- **已归档**（`archived: true`）：活动结束后工作人员会将其归档，它会移到官网的往期活动中。**它的 ID 保持不变**，所以它的链接和其订单的链接都继续有效。它的门票变为只读。
+
+两类活动共享一部分字段，其余字段不同，与官网存储它们的方式一致。
+
+## 两类共有的字段
+
+<Params>
+<Param name="id" type="string">
+活动 ID。归档后不变。
+</Param>
+<Param name="archived" type="boolean">
+活动是否已归档。
+</Param>
+<Param name="onSale" type="boolean">
+现在是否可以为它下单。仅当活动未归档、是付费活动、尚未结束且不待删除（`deleteAt` 为 `null`）时为 true。未发布的活动也可以在售，所以向公众展示前还要检查 `published`。
+</Param>
+<Param name="title" type="string">
+英文标题。
+</Param>
+<Param name="titleCn" type="string">
+中文标题。为 `""` 时，官网显示 `title`。
+</Param>
+<Param name="description" type="string">
+英文描述，纯文本，可能包含换行。
+</Param>
+<Param name="descriptionCn" type="string">
+中文描述。为 `""` 时，官网显示 `description`。
+</Param>
+<Param name="location" type="string">
+英文地点，例如房间或楼名。
+</Param>
+<Param name="locationCn" type="string">
+中文地点。
+</Param>
+<Param name="venueId" type="string">
+活动场地在官网地图和停车指南中的 ID，没有则为 `""`。场地目前还不在 API 中。
+</Param>
+<Param name="published" type="boolean">
+公开官网是否显示该活动。未发布的活动是草稿，或是刚归档、工作人员尚未发布到往期活动页面的活动。
+</Param>
+<Param name="paid" type="boolean">
+活动是否有门票。免费活动没有。
+</Param>
+<Param name="deleteAt" type="string | null">
+如果工作人员申请删除该活动，则为它的预定删除时间。删除会等待 48 小时，期间可以取消。否则为 `null`。
+</Param>
+</Params>
+
+## 未归档活动的字段
+
+<Params>
+<Param name="startAt" type="string | null">
+活动开始时间。
+</Param>
+<Param name="endAt" type="string | null">
+活动结束时间。订单在此时截止。
+</Param>
+<Param name="poster" type="string">
+海报图片的 URL，或 `""`。
+</Param>
+<Param name="posterCredit" type="string">
+海报作者，或 `""`。
+</Param>
+<Param name="emailHeaderBg" type="string">
+门票邮件页眉图片的 URL，或 `""`。
+</Param>
+<Param name="buyTicket" type="string">
+官网「获取门票」按钮的链接，没有则为 `""`。
+</Param>
+<Param name="learnMore" type="string">
+官网「了解更多」按钮的链接，没有则为 `""`。
+</Param>
+<Param name="customButtonText" type="string">
+官网额外显示的按钮的英文文字。
+</Param>
+<Param name="customButtonTextCn" type="string">
+该按钮的中文文字。
+</Param>
+<Param name="customButtonLink" type="string">
+该按钮的链接，没有额外按钮时为 `""`。
+</Param>
+</Params>
+
+## 已归档活动的字段
+
+<Params>
+<Param name="date" type="string">
+活动举行的日期，格式为 `YYYY-MM-DD`，太平洋时间。
+</Param>
+<Param name="tagIds" type="string[]">
+活动在官网上的标签 ID，例如「Workshop」。标签目前还不在 API 中。
+</Param>
+<Param name="icon" type="string">
+往期活动页面上活动照片的 URL，或 `""`。
+</Param>
+<Param name="recapLink" type="string">
+回顾文章的 URL，或 `""`。
+</Param>
+<Param name="recapLinkCn" type="string">
+中文回顾文章的 URL，或 `""`。
+</Param>
+</Params>
+
+## 示例
+
+未归档的活动：
+
+<ObjectExample name="unarchivedEvent" />
+
+已归档的活动：
+
+<ObjectExample name="archivedEvent" />

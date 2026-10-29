@@ -1,0 +1,31 @@
+---
+title: API 密钥
+description: 谁来创建密钥，以及每个密钥能做什么。
+---
+
+核心成员及以上可以在管理后台的「工具 > API 密钥」中创建密钥。工作人员组看不到这个工具，其背后的函数（`createApiKey`、`listApiKeys`、`revokeApiKey`）也会拒绝核心成员以下的任何人。
+
+- 密钥只在创建时显示一次。我们只在 `apiKeys` 中保存它的 SHA-256，任何客户端都无法读取（见 [`firestore.rules`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.rules)）。丢失的密钥无法找回：吊销它，再创建一个新的。
+- **新密钥在创建后几秒内生效**，而不是立即生效。在此之前它会返回 `invalid-api-key`，所以创建后马上发起的第一次调用可能需要重试。
+- **吊销密钥即删除密钥。** 它会立即失效并从列表中移除，「操作记录」中保留它的名称及首尾几个字符。过期的密钥会出现「删除」按钮，可以用同样的方式将其从列表中清除。
+- 每个密钥都有**权限范围**：`events:read`、`tickets:write`、`tickets:read`。
+- 密钥可以限定于**特定活动**，已归档或未归档均可。默认可以使用所有活动。
+- 每个密钥都有一个**销售方 ID**，例如 `cn-app`。订单号按销售方 ID 分别保存，因此两个应用可以各有一笔订单 `1001`，而一个密钥只能创建和读取它所属销售方的订单。请为每个应用分配各自的 ID；替换旧密钥的新密钥要沿用同一个 ID，否则它找不到之前创建的订单。
+- 每个密钥都会**过期**，默认一年，最长两年。
+- 密钥属于社团，而不是创建它的人。创建者卸任后密钥依然有效，任何核心成员都可以吊销它。
+- 每个密钥每分钟最多调用 **120 次**。
+- 创建密钥、吊销密钥、通过密钥创建的每笔订单，以及为其发送或排队的每封邮件，都会记录在「操作记录」中。
+
+<Callout type="error" title="密钥只能放在销售方的服务器上。">
+  绝不要把它放进移动应用、小程序或网页：任何人都可以把它提取出来，读取它能读取的一切，并给自己签发门票。
+</Callout>
+
+## 权限范围
+
+| 权限范围 | 允许密钥 |
+|---|---|
+| `events:read` | [列出活动](../api-reference/list-events.mdx)和[获取活动](../api-reference/get-event.mdx) |
+| `tickets:write` | [创建订单](../api-reference/create-order.mdx) |
+| `tickets:read` | [获取订单](../api-reference/get-order.mdx) |
+
+缺少所需权限范围的调用会返回 `403 missing-scope`。超出速率限制的调用会返回 `429 rate-limited`，并通过 `Retry-After` 告知需要等待的秒数。详见[错误](../api-reference/errors.mdx)。

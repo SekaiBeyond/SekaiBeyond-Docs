@@ -1,0 +1,40 @@
+---
+title: Get an order
+description: An order placed through the API, with whether each ticket has been used.
+full: true
+---
+
+<Endpoint method="GET" path="/v1/events/{eventId}/orders/{orderId}" scope="tickets:read" />
+
+<ApiPage operation="getOrder">
+
+Returns an order placed through the API, with each ticket's status: whether it has been scanned at the door or voided by staff. It works whether or not the event has been archived.
+
+There's no list of a buyer's orders. The seller's app already knows which orders each of its users placed. To check for changes, compare the order's `updatedAt`, which moves on any scan, void or staff edit.
+
+## Path parameters
+
+<Params>
+<Param name="eventId" type="string" required>
+The event the order is for.
+</Param>
+<Param name="orderId" type="string" required>
+Your order number, as sent to [Create an order](./create-order.mdx) with a key of the same seller ID.
+</Param>
+</Params>
+
+## Returns
+
+**200** with the [Order](./order.mdx).
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 403 | `event-not-allowed` | The key is held to other events. |
+| 404 | `event-not-found` | No event has this ID. |
+| 404 | `order-not-found` | The event has no order placed through the API with this number by your seller ID. |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

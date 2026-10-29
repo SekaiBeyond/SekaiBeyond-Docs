@@ -1,0 +1,31 @@
+---
+title: 列出活动
+description: 所有活动：未归档和已归档的、免费和付费的、已发布和未发布的。
+full: true
+---
+
+<Endpoint method="GET" path="/v1/events" scope="events:read" />
+
+<ApiPage operation="listEvents">
+
+返回所有活动：未归档和已归档的、免费和付费的、已发布和未发布的。按需根据 [Event](./event.mdx) 的标志字段（`archived`、`published`、`paid`、`onSale`、`deleteAt`）筛选。限定于特定活动的密钥只会得到这些活动。
+
+## 参数
+
+无。
+
+## 返回
+
+**200**，返回一个包含活动的对象：
+
+<Params>
+<Param name="events" type="Event[]">
+先是未归档的活动，开始时间早的在前；然后是已归档的活动，日期晚的在前。这与官网列出它们的顺序相同。所有字段见 [Event 对象](./event.mdx)。
+</Param>
+</Params>
+
+## 错误
+
+只有所有端点都可能返回的错误，见[错误](./errors.mdx)。
+
+</ApiPage>

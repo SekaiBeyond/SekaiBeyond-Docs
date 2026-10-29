@@ -1,0 +1,31 @@
+---
+title: List events
+description: Every event, unarchived and archived, free and paid, published or not.
+full: true
+---
+
+<Endpoint method="GET" path="/v1/events" scope="events:read" />
+
+<ApiPage operation="listEvents">
+
+Returns every event: unarchived and archived, free and paid, published or not. Filter on the [Event](./event.mdx) flags (`archived`, `published`, `paid`, `onSale`, `deleteAt`) for what you need. A key held to certain events gets only those.
+
+## Parameters
+
+None.
+
+## Returns
+
+**200** with an object holding the events:
+
+<Params>
+<Param name="events" type="Event[]">
+Unarchived events first, soonest first, then archived ones, latest first. That's the order the site lists them in. Every field is listed in [The Event object](./event.mdx).
+</Param>
+</Params>
+
+## Errors
+
+Only the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

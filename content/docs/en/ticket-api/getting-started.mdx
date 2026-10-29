@@ -1,0 +1,65 @@
+---
+title: Getting started
+description: From a new key to a first order, step by step.
+---
+
+<Steps>
+<Step>
+
+### Get a key
+
+Core-staff and above create keys in the admin panel under **Tools > API Keys**. Ask one of them for a key with the scopes your app needs and its own seller ID, such as `cn-app`. See [API keys](./keys.mdx) for what each choice means.
+
+The key is shown once, when it's made. Keep it on your server only, never in a mobile app, mini-program or web page, and give it to your code as an environment variable:
+
+```bash
+export SEKAI_API_KEY="sbk_…"
+```
+
+A new key works within a few seconds of being made, not at once. Until then it answers `invalid-api-key`, so a first call made straight away may need a retry.
+
+</Step>
+<Step>
+
+### List the events
+
+[List events](../api-reference/list-events.mdx) returns every event the key can see, unarchived and archived, published or not. Offer the public only those with `published: true`, and take orders only for those with `onSale: true`.
+
+<RequestExample operation="listEvents" />
+
+Servers in mainland China call `https://api.sekaibeyond.com`, as here. Elsewhere, `https://sekaibeyond.com/api` works too. See [Calling from mainland China](./mainland-china.mdx).
+
+</Step>
+<Step>
+
+### Check the event before taking payment
+
+Just before the buyer pays, [get the event](../api-reference/get-event.mdx) and check that `onSale` is still `true`. It turns `false` once the event ends, is archived, or is due to be deleted.
+
+</Step>
+<Step>
+
+### Issue the tickets once paid
+
+[Create an order](../api-reference/create-order.mdx) with your own order number, the buyer, and how many of each ticket type they bought. Add `sendEmail: true` to have us email the tickets to the buyer as well.
+
+<RequestExample operation="createOrder" />
+
+**Retrying is safe.** Sending the same order again returns the tickets it already has. So after a timeout, send the order again rather than giving up or making a new order number.
+
+</Step>
+<Step>
+
+### Show the tickets
+
+**Show each ticket's `qr` as a QR code, exactly as given.** That's what the door scanner reads.
+
+</Step>
+<Step>
+
+### Check for scans, if you need to
+
+[Get the order](../api-reference/get-order.mdx) to see whether each ticket has been scanned at the door or voided by staff. Its `updatedAt` moves on any scan, void or staff edit, so compare it to tell whether to look again.
+
+</Step>
+</Steps>

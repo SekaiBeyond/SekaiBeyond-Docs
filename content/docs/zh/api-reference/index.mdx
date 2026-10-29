@@ -1,0 +1,47 @@
+---
+title: API 参考
+description: 基础地址、身份验证与约定，以及所有端点。
+---
+
+## 基础地址
+
+```
+https://api.sekaibeyond.com     （可从中国大陆访问，见中转）
+https://sekaibeyond.com/api     （其他地区）
+```
+
+两者接受相同的路径，响应方式也相同。中转的说明见[从中国大陆调用](../ticket-api/mainland-china.mdx)。
+
+## 身份验证
+
+每个请求都携带密钥：
+
+```
+Authorization: Bearer sbk_…
+Content-Type: application/json      （仅 POST）
+```
+
+密钥由核心成员在管理后台创建，见 [API 密钥](../ticket-api/keys.mdx)。
+
+## 约定
+
+- **请求和响应都是 JSON**，使用 UTF-8 编码。
+- **时间戳**为 UTC 时区的 ISO 8601 格式，例如 `2026-11-14T18:00:00.000Z`；未设置时为 `null`。
+- **文本字段**未设置时为 `""`，绝不会是 `null`。每个中文字段（以 `Cn` 结尾）都可能是 `""`，此时官网显示对应的英文字段。
+- **字段可能会随时间增加**，请忽略不认识的字段。
+
+## 端点
+
+| 端点 | 权限范围 | 作用 |
+|---|---|---|
+| [`GET /v1/events`](./list-events.mdx) | `events:read` | 列出所有活动，包括已归档的 |
+| [`GET /v1/events/{eventId}`](./get-event.mdx) | `events:read` | 获取单个活动，例如在收款前再确认一次 |
+| [`POST /v1/events/{eventId}/orders`](./create-order.mdx) | `tickets:write` | 订单付款后签发其门票 |
+| [`GET /v1/events/{eventId}/orders/{orderId}`](./get-order.mdx) | `tickets:read` | 获取订单，以及每张门票是否已使用 |
+
+返回的对象：
+
+- [Event 对象](./event.mdx)：官网的两类活动（未归档和已归档）及其字段
+- [Order 对象](./order.mdx)：订单及其门票
+
+票价保存在销售方的应用中，因为活动本身不存储价格。

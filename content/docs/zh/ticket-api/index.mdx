@@ -1,0 +1,42 @@
+---
+title: 门票 API
+description: 让其他应用的服务器读取我们的活动，并为付费活动售票。
+---
+
+门票 API 让其他应用的服务器读取我们的活动，并为付费活动售票。通过它售出的门票会进入活动的参会者名单，在入口像其他门票一样扫码入场；订单带有买家邮箱时，门票还会出现在买家在官网上的「我的门票」中。订单也可以要求我们把门票通过邮件发给买家。
+
+<Callout type="warn" title="这是管理员级别的 API，不面向普通用户。">
+  密钥看到的活动与核心成员在管理后台看到的一样，包括未发布的活动。因此密钥只发给我们自己的系统和我们信任的合作方服务器。
+</Callout>
+
+API 返回官网自身读取的全部内容，筛选交给调用方。它的活动包括官网的两类活动：未归档的和已归档的，各自带有官网原有的字段。
+
+## 能做什么
+
+| 端点 | 权限范围 | 作用 |
+|---|---|---|
+| [`GET /v1/events`](../api-reference/list-events.mdx) | `events:read` | 列出所有活动，包括已归档的 |
+| [`GET /v1/events/{eventId}`](../api-reference/get-event.mdx) | `events:read` | 获取单个活动，例如在收款前再确认一次 |
+| [`POST /v1/events/{eventId}/orders`](../api-reference/create-order.mdx) | `tickets:write` | 订单付款后签发其门票 |
+| [`GET /v1/events/{eventId}/orders/{orderId}`](../api-reference/get-order.mdx) | `tickets:read` | 获取订单，以及每张门票是否已使用 |
+
+票价保存在销售方的应用中，因为活动本身不存储价格。
+
+## 接下来
+
+<Cards>
+  <Card title="快速上手" href="./getting-started.mdx">
+    从拿到密钥到第一笔订单，一步一步来。
+  </Card>
+  <Card title="API 密钥" href="./keys.mdx">
+    权限范围、销售方 ID、有效期与速率限制。
+  </Card>
+  <Card title="从中国大陆调用" href="./mainland-china.mdx">
+    `api.sekaibeyond.com` 中转，以及它在大陆的可达性。
+  </Card>
+  <Card title="API 参考" href="../api-reference/index.mdx">
+    所有端点、对象与错误。
+  </Card>
+</Cards>
+
+代码位于 [`functions/src/functions/api.ts`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/functions/src/functions/api.ts)。

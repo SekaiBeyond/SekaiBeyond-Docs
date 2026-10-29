@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+/* Warm paper tones with the site's pink, deepened in light mode so links keep
+   4.5:1 contrast. The site's own #ff6b9d is used as is in dark mode. */
+@theme {
+  --color-fd-background: hsl(40, 33%, 98%);
+  --color-fd-card: hsl(40, 25%, 96%);
+  --color-fd-muted: hsl(40, 18%, 94%);
+  --color-fd-secondary: hsl(40, 18%, 93%);
+  --color-fd-popover: hsl(40, 33%, 99%);
+  --color-fd-border: hsla(30, 10%, 70%, 45%);
+  --color-fd-primary: #c2185b;
+  --color-fd-primary-foreground: #fff;
+  --color-fd-ring: #ff6b9d;
+  --color-sb-pink: #ff6b9d;
+  --color-sb-orange: #ff8e53;
+  --color-sb-yellow: #feca57;
+
+  --color-method-get: #15803d;
+  --color-method-post: #1d4ed8;
+
+  --font-sans:
+    var(--font-inter), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+.dark {
+  --color-fd-background: hsl(30, 6%, 8%);
+  --color-fd-card: hsl(30, 5%, 11%);
+  --color-fd-muted: hsl(30, 5%, 13%);
+  --color-fd-secondary: hsl(30, 5%, 14%);
+  --color-fd-popover: hsl(30, 5%, 11%);
+  --color-fd-primary: #ff6b9d;
+  --color-fd-primary-foreground: hsl(30, 6%, 8%);
+
+  --color-method-get: #4ade80;
+  --color-method-post: #60a5fa;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Error codes and field names stay whole; a narrow table scrolls instead. */
+.prose td code {
+  white-space: nowrap;
+}
+
+/* The scroll lock sets these inline, so only !important overrides them. */
+html > body[data-scroll-locked] {
+  /* biome-ignore lint/complexity/noImportantStyles: overrides an inline style */
+  margin-right: 0px !important;
+  /* biome-ignore lint/complexity/noImportantStyles: overrides an inline style */
+  --removed-body-scroll-bar-size: 0px !important;
+}

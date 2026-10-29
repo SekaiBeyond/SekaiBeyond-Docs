@@ -1,0 +1,6 @@
+{
+  "title": "Website",
+  "description": "Building and running sekaibeyond.com",
+  "root": true,
+  "pages": ["index", "emulators", "deploy", "email", "app-check", "firestore", "user-groups", "api-relay"]
+}

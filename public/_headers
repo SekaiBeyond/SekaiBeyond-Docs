@@ -1,0 +1,4 @@
+# Next.js puts a content hash in every file name under /_next/static, so a
+# changed file gets a new URL and these can be cached for good.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable

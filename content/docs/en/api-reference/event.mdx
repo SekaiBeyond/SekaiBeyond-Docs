@@ -1,0 +1,122 @@
+---
+title: The Event object
+description: Both kinds of event the site has, unarchived and archived, and their fields.
+---
+
+What [List events](./list-events.mdx) and [Get an event](./get-event.mdx) return.
+
+The site has two kinds of event, told apart by `archived`:
+
+- **Unarchived** (`archived: false`): upcoming, on now, or over but not yet archived. Tickets are sold for these.
+- **Archived** (`archived: true`): staff archive an event once it's over, and it moves to the site's past events. **It keeps its ID**, so its URLs and its orders' URLs keep working. Its tickets become read-only.
+
+The two kinds share some fields and differ in the rest, the same way the site stores them.
+
+## Fields on both kinds
+
+<Params>
+<Param name="id" type="string">
+The event's ID. It doesn't change when the event is archived.
+</Param>
+<Param name="archived" type="boolean">
+Whether the event has been archived.
+</Param>
+<Param name="onSale" type="boolean">
+Whether an order can be placed for it now. True only for an unarchived event that's paid, not yet ended and not due to be deleted (`deleteAt` is `null`). An unpublished event can be on sale, so check `published` too before offering it to the public.
+</Param>
+<Param name="title" type="string">
+English title.
+</Param>
+<Param name="titleCn" type="string">
+Chinese title. When it's `""`, the site shows `title` instead.
+</Param>
+<Param name="description" type="string">
+English description, plain text. It may contain line breaks.
+</Param>
+<Param name="descriptionCn" type="string">
+Chinese description. When it's `""`, the site shows `description` instead.
+</Param>
+<Param name="location" type="string">
+English location, such as a room or building.
+</Param>
+<Param name="locationCn" type="string">
+Chinese location.
+</Param>
+<Param name="venueId" type="string">
+The ID of the event's venue on the site's map and parking guide, or `""` for none. Venues aren't in the API yet.
+</Param>
+<Param name="published" type="boolean">
+Whether the public site shows the event. An unpublished event is a draft, or one just archived that staff haven't yet published to the past-events page.
+</Param>
+<Param name="paid" type="boolean">
+Whether the event has tickets. Free events don't.
+</Param>
+<Param name="deleteAt" type="string | null">
+When the event is due to be deleted, if staff have asked to delete it. Deletion waits 48 hours and can be cancelled. `null` otherwise.
+</Param>
+</Params>
+
+## Fields on an unarchived event
+
+<Params>
+<Param name="startAt" type="string | null">
+When the event starts.
+</Param>
+<Param name="endAt" type="string | null">
+When it ends. Orders close at this time.
+</Param>
+<Param name="poster" type="string">
+URL of the poster image, or `""`.
+</Param>
+<Param name="posterCredit" type="string">
+Who made the poster, or `""`.
+</Param>
+<Param name="emailHeaderBg" type="string">
+URL of the header image on our ticket emails, or `""`.
+</Param>
+<Param name="buyTicket" type="string">
+URL behind the site's **Get Tickets** button, or `""` for none.
+</Param>
+<Param name="learnMore" type="string">
+URL behind the site's **Learn More** button, or `""` for none.
+</Param>
+<Param name="customButtonText" type="string">
+English label of an extra button the site shows.
+</Param>
+<Param name="customButtonTextCn" type="string">
+Its Chinese label.
+</Param>
+<Param name="customButtonLink" type="string">
+Its URL, or `""` when there's no extra button.
+</Param>
+</Params>
+
+## Fields on an archived event
+
+<Params>
+<Param name="date" type="string">
+The day it took place, as `YYYY-MM-DD` in Pacific time.
+</Param>
+<Param name="tagIds" type="string[]">
+IDs of the event's tags on the site, such as "Workshop". Tags aren't in the API yet.
+</Param>
+<Param name="icon" type="string">
+URL of the event's photo on the past-events page, or `""`.
+</Param>
+<Param name="recapLink" type="string">
+URL of a recap post, or `""`.
+</Param>
+<Param name="recapLinkCn" type="string">
+URL of a Chinese recap post, or `""`.
+</Param>
+</Params>
+
+## Examples
+
+An unarchived event:
+
+<ObjectExample name="unarchivedEvent" />
+
+An archived one:
+
+<ObjectExample name="archivedEvent" />

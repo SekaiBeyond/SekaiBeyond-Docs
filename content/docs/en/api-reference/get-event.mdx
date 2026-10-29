@@ -1,0 +1,34 @@
+---
+title: Get an event
+description: One event, archived or not, such as to check it just before taking payment.
+full: true
+---
+
+<Endpoint method="GET" path="/v1/events/{eventId}" scope="events:read" />
+
+<ApiPage operation="getEvent">
+
+Returns one event, archived or not. Call it just before taking payment to check that `onSale` is still `true`.
+
+## Path parameters
+
+<Params>
+<Param name="eventId" type="string" required>
+The event's ID, from [List events](./list-events.mdx).
+</Param>
+</Params>
+
+## Returns
+
+**200** with the [Event](./event.mdx).
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 403 | `event-not-allowed` | The key is held to other events. |
+| 404 | `event-not-found` | No event has this ID. |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

@@ -1,0 +1,81 @@
+---
+title: The Order object
+description: An order and its tickets.
+---
+
+What [Create an order](./create-order.mdx) and [Get an order](./get-order.mdx) return.
+
+An order is one buyer's tickets for one event, placed with the seller's own order number. It stays readable after its event is archived.
+
+## Fields
+
+<Params>
+<Param name="orderId" type="string">
+The seller's order number, as sent when the order was created. It's unique only within the seller's ID.
+</Param>
+<Param name="eventId" type="string">
+The event the tickets are for.
+</Param>
+<Param name="createdAt" type="string">
+When the order was placed.
+</Param>
+<Param name="updatedAt" type="string">
+When anything about the order last changed: a scan, a void, a staff edit or its email going out. Compare it to tell whether to look again.
+</Param>
+<Param name="buyer" type="object">
+Who bought the tickets.
+
+<Properties>
+<Param name="name" type="string">
+Their name, as sent, unless staff have since changed it.
+</Param>
+<Param name="email" type="string">
+Their email, lowercased, or `""` if none was sent.
+</Param>
+</Properties>
+</Param>
+<Param name="emailStatus" type="string">
+Whether we've emailed the buyer their tickets. `not-requested` when the order didn't ask (no `sendEmail: true`); otherwise `sent`, `queued` (past the daily cap, going out as room opens), `unsent` (not sent: staff can send it from the admin panel) or `unconfirmed` (still being sent, or it may or may not have gone: staff check before sending it again). See [Emailing the tickets](./create-order.mdx#emailing-the-tickets).
+</Param>
+<Param name="ticketCount" type="number">
+How many tickets the order holds, voided ones included.
+</Param>
+<Param name="tickets" type="Ticket[]">
+The tickets, grouped by type in this order: `normal`, `early-bird`, `student`, `early-bird-student`, `vip`. See [The Ticket object](#the-ticket-object).
+</Param>
+</Params>
+
+## The Ticket object
+
+<Params>
+<Param name="ticketId" type="string">
+The ticket's ID, a UUID.
+</Param>
+<Param name="type" type="string">
+The ticket type: one of the types sold (`normal`, `early-bird`, `student`, `early-bird-student`, `vip`). Staff can change a ticket's type in the admin panel to any of the site's types, which adds `Comp Ticket`, `guest` and `vendor`.
+</Param>
+<Param name="qr" type="string">
+What to show as the ticket's QR code, exactly as given. It's a link for staff: the door scanner reads it, and a signed-in staff member opening it admits the ticket. It isn't a page for the buyer.
+</Param>
+<Param name="status" type="string">
+`valid`, `used` or `voided`. It sums up the flags below: a ticket scanned and then voided is `voided`.
+</Param>
+<Param name="createdAt" type="string">
+When the ticket was issued.
+</Param>
+<Param name="redeemed" type="boolean">
+Whether it has been scanned at the door. Staff can undo a scan, which makes it `false` again.
+</Param>
+<Param name="redeemedAt" type="string | null">
+When it was scanned, or `null`.
+</Param>
+<Param name="voided" type="boolean">
+Whether staff have voided it, such as for a refund. A voided ticket doesn't get in.
+</Param>
+</Params>
+
+## Example
+
+An order on the night, after its first ticket was scanned at the door:
+
+<ObjectExample name="order" />
