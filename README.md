@@ -32,8 +32,10 @@ Then open http://localhost:3000/en.
 | --------------------- | -------------------------------------- |
 | `npm run dev`         | Serve the site with hot reload         |
 | `npm run build`       | Build the static site into `out/`      |
+| `npm start`           | Serve the built site from `out/`       |
 | `npm run types:check` | Check types, including MDX frontmatter |
 | `npm run lint`        | Lint and check formatting with Biome   |
+| `npm run format`      | Format every file with Biome           |
 
 ## Where things are
 
@@ -46,7 +48,7 @@ content/docs/
   zh/                     Simplified Chinese, same paths as en/
 lib/examples.ts           The request and response beside each endpoint
 lib/snippets.ts           Turns those into cURL, Python, Node.js, Go and Java
-components/api.tsx        Endpoint, ApiPage, Param, Properties, ObjectExample
+components/api.tsx        Endpoint, ApiPage, RequestExample, ObjectExample, Params, Param, Properties
 ```
 
 Each folder's `meta.json` sets its sidebar title and page order. A folder with `"root": true` is a tab in the navbar.
