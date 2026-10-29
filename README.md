@@ -34,7 +34,7 @@ Then open http://localhost:3000/en.
 | `npm run build`       | Build the static site into `out/`      |
 | `npm start`           | Serve the built site from `out/`       |
 | `npm run types:check` | Check types, including MDX frontmatter |
-| `npm run lint`        | Lint and check formatting with Biome   |
+| `npm run lint`        | Lint and check import order with Biome |
 | `npm run format`      | Format every file with Biome           |
 
 ## Where things are

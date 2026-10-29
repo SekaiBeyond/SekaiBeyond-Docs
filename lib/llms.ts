@@ -1,5 +1,5 @@
 import { apiLabels } from '@/lib/api-labels';
-import { examples, objectExamples, type OperationId, statusText } from '@/lib/examples';
+import { examples, type OperationId, objectExamples, statusText } from '@/lib/examples';
 import type { Locale } from '@/lib/i18n';
 import { requestSnippets } from '@/lib/snippets';
 

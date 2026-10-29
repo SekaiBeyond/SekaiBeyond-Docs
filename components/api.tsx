@@ -10,7 +10,7 @@ import {
 import type { ReactNode } from 'react';
 import { ApiLabel } from '@/components/api-label';
 import { cn } from '@/lib/cn';
-import { examples, type Method, objectExamples, type OperationId, statusText } from '@/lib/examples';
+import { examples, type Method, type OperationId, objectExamples, statusText } from '@/lib/examples';
 import { requestSnippets } from '@/lib/snippets';
 
 // The same themes as the MDX code blocks. With no default color, every color

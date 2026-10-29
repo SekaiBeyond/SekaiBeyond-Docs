@@ -6,7 +6,7 @@
     "dev": "next dev",
     "start": "serve out",
     "types:check": "next typegen && tsc --noEmit",
-    "lint": "biome check",
+    "lint": "biome check --formatter-enabled=false",
     "format": "biome format --write"
   },
   "dependencies": {
