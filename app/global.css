@@ -2,16 +2,16 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 
-/* Mika's hair: pastel pink on top, mint at the tips. Pink leads, on a white
-   page with blush surfaces. In light mode both are deepened so text keeps 4.5:1
-   contrast, on white and on blush; dark mode uses them nearly as they are. */
+/* Mika's hair: pastel pink on top, mint at the tips, as accents on a pure white
+   page with neutral surfaces. In light mode both are deepened so text keeps
+   4.5:1 contrast on white; dark mode uses them nearly as they are. */
 @theme {
   --color-fd-background: #fff;
-  --color-fd-card: hsl(342, 70%, 97.5%);
-  --color-fd-muted: hsl(342, 60%, 96%);
-  --color-fd-secondary: hsl(342, 55%, 95%);
+  --color-fd-card: #fff;
+  --color-fd-muted: hsl(240, 5%, 96.5%);
+  --color-fd-secondary: hsl(240, 5%, 95.5%);
   --color-fd-popover: #fff;
-  --color-fd-border: hsla(342, 50%, 80%, 50%);
+  --color-fd-border: hsl(240, 6%, 90%);
   --color-fd-primary: #d32257;
   --color-fd-primary-foreground: #fff;
   --color-fd-ring: #efc0cf;
