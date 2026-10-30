@@ -3,7 +3,7 @@ title: API keys
 description: Who makes keys, and what each key can do.
 ---
 
-Core-staff and above create keys in the admin panel under **Tools > API Keys**. The staff group can't see that tool, and the functions behind it (`createApiKey`, `listApiKeys`, `revokeApiKey`) refuse anyone below core-staff.
+Core-staff and above create keys in the admin panel under **Tools > API Keys**. The staff group can't see that tool, and the functions behind it (`createApiKey`, `listApiKeys`, `renameApiKey`, `revokeApiKey`) refuse anyone below core-staff.
 
 - A key is shown once, when it's made. Only its SHA-256 is stored, in `apiKeys`, which no client can read (see [`firestore.rules`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.rules)). A lost key can't be recovered: revoke it and make a new one.
 - **A new key works within a few seconds of being made,** not at once. Until then it answers `invalid-api-key`, so a first call made straight away may need a retry.
@@ -12,9 +12,9 @@ Core-staff and above create keys in the admin panel under **Tools > API Keys**. 
 - A key can be held to **specific events**, archived or not. By default it can use every event.
 - Each key has a **seller ID**, such as `cn-app`. Order numbers are kept per seller ID, so two apps can each have an order `1001`, and a key only places and reads its own seller's orders. Give each app its own ID, and a key that replaces another the same one, or it won't find the orders placed before.
 - Every key **expires**, after one year by default and two years at most.
-- Keys belong to the club, not to whoever made them. A key keeps working after its maker steps down, and any core-staff can revoke it.
+- Keys belong to the club, not to whoever made them. A key keeps working after its maker steps down, and any core-staff can rename or revoke it. Renaming changes only what the list and new records call it: orders and records already made keep the name they were made under.
 - Each key may make **120 calls a minute**.
-- Creating a key, revoking one, every order placed and every email sent or queued for one are logged in **Records**.
+- Creating a key, renaming or revoking one, every order placed and every email sent or queued for one are logged in **Records**.
 
 <Callout type="error" title="The key belongs on the seller's server only.">
   Never put it in a mobile app, mini-program or web page: anyone could pull it out, read everything it can, and issue themselves tickets.
