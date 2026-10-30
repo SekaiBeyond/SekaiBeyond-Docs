@@ -1,0 +1,35 @@
+---
+title: AccountLink 对象
+description: 你的应用的用户，以及其绑定的 sekaibeyond.com 账号。
+---
+
+[创建绑定](./create-account-link.mdx)和[获取绑定](./get-account-link.mdx)返回的对象。
+
+一个绑定把你的应用中的一个用户与一个 sekaibeyond.com 账号配对。每一方最多只能绑定一次。见[绑定账号](../ticket-api/account-links.mdx)。
+
+## 字段
+
+<Params>
+<Param name="appUserId" type="string">
+你的应用为该用户分配的 ID，即绑定时发送的值。
+</Param>
+<Param name="uid" type="string">
+账号在官网上的 ID。它永远不会改变，所以应当保存它。
+</Param>
+<Param name="displayName" type="string">
+账号当前在官网上的名称。
+</Param>
+<Param name="photoURL" type="string">
+账号当前的头像；没有则为 `""`。
+</Param>
+<Param name="nickname" type="string">
+绑定时该用户在你的应用中的昵称，即发送的值。
+</Param>
+<Param name="linkedAt" type="string">
+绑定时间。
+</Param>
+</Params>
+
+## 示例
+
+<ObjectExample name="accountLink" />

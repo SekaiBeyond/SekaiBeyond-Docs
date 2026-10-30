@@ -5,6 +5,8 @@ description: Read our events and sell tickets for the paid ones from another app
 
 Lets another app's server read our events and sell tickets for the paid ones. Tickets sold this way go on the event's attendee list, scan at the door like any other, and show in the buyer's **My Tickets** on the site when the order carries their email. An order can also ask us to email the buyer their tickets.
 
+The app's users can also bind their sekaibeyond.com account, so what they buy in the app is that account's, and the app can show the account's badges, passports and events.
+
 <Callout type="warn" title="It's an admin-level API, not one for ordinary users.">
   A key sees events as core-staff do in the admin panel, unpublished ones included. So keys go only to our own systems and to partners' servers we trust.
 </Callout>
@@ -19,6 +21,7 @@ The API returns everything the site itself reads and leaves the filtering to the
 | [`GET /v1/events/{eventId}`](../api-reference/get-event.mdx) | `events:read` | Get one event, such as to check it just before taking payment |
 | [`POST /v1/events/{eventId}/orders`](../api-reference/create-order.mdx) | `tickets:write` | Issue an order's tickets once it's paid |
 | [`GET /v1/events/{eventId}/orders/{orderId}`](../api-reference/get-order.mdx) | `tickets:read` | Get an order, with whether each ticket has been used |
+| [`/v1/account-links`](../api-reference/create-account-link.mdx) | `accounts:link` | Bind the app's users to their accounts, and read a bound account's profile: see [Binding accounts](./account-links.mdx) |
 
 Prices stay in the seller's app, since events don't store them.
 
@@ -30,6 +33,9 @@ Prices stay in the seller's app, since events don't store them.
   </Card>
   <Card title="API keys" href="./keys.mdx">
     Scopes, seller IDs, expiry and the rate limit.
+  </Card>
+  <Card title="Binding accounts" href="./account-links.mdx">
+    Let the app's users bind their sekaibeyond.com account.
   </Card>
   <Card title="Calling from mainland China" href="./mainland-china.mdx">
     The relay at `api.sekaibeyond.com`, and how well it's reached.

@@ -1,0 +1,73 @@
+---
+title: Binding accounts
+description: Let your app's users bind their sekaibeyond.com account, so what they buy in your app is theirs on the site.
+---
+
+Your app signs its users in its own way, such as with WeChat. A user who also has a sekaibeyond.com account can bind the two. From then on, the tickets they buy in your app belong to that account, whatever email they go to: they show in its **My Tickets** and count toward its events at the door. Your app can also show the account's profile: its badges, passports and the events it went to.
+
+The account is still managed on the site. The site holds who is bound to whom; your app keeps a copy only to show it.
+
+## How a user binds
+
+<Steps>
+<Step>
+
+### They get a code on the site
+
+Signed in at sekaibeyond.com, they open their profile's **Settings**, and under **WeChat** click **Get a binding code**. The site shows an 8-character code, and a QR code holding `SKBYLINK:` followed by the code. It works once, for 10 minutes, and getting another replaces it.
+
+</Step>
+<Step>
+
+### They scan or type it in your app
+
+Read the QR code, or let them type the code. Send it as it is: case, spaces, dashes and the `SKBYLINK:` prefix are ignored.
+
+</Step>
+<Step>
+
+### Show them whose account it is
+
+[Preview the binding](../api-reference/preview-account-link.mdx) with the code and your ID for the user. It returns the account's name and photo and its email half hidden, such as `l***@gmail.com`, and leaves the code unused. Ask the user to confirm the account is theirs.
+
+<Callout type="warn" title="Don't skip the confirmation.">
+  Someone could get a user to scan a code made for their own account. Binding it would put everything the user buys into that person's account. The preview is how the user notices.
+</Callout>
+
+</Step>
+<Step>
+
+### Bind
+
+[Create the binding](../api-reference/create-account-link.mdx) with the same code. It returns the account's `uid`, name and photo for your app to show.
+
+</Step>
+</Steps>
+
+## Your ID for the user
+
+`appUserId` is your app's own ID for its user: 1–64 letters, digits, `-` and `_`, and the same for that user for good. Like order numbers, it's kept per seller ID (see [API keys](./keys.mdx)), so another app's user `10086` is someone else. A key made before seller IDs can't bind accounts and gets `403 no-seller`: replace it with one that has a seller ID.
+
+## Orders
+
+Send `buyer.appUserId` on [every order](../api-reference/create-order.mdx), whether or not the user is bound yet:
+
+- **Bound,** the order is the account's at once.
+- **Not yet bound,** it becomes the account's when they bind. Binding gives the account every earlier order with that ID, and credits the events whose tickets were scanned at the door.
+- **Unbound later,** the orders already the account's stay its, since they were bought for it. Orders placed after that aren't.
+
+## Keeping in step
+
+Either side can unbind: the user from the site's Settings, or your app through [Delete the binding](../api-reference/delete-account-link.mdx). The site doesn't tell your app, so [get the binding](../api-reference/get-account-link.mdx) when the user opens the screen that shows it, and treat `404 not-linked` as unbound. If the site can't be reached, show what you last knew.
+
+Each side is bound once: a user to one account, and an account to one user. Binding to another takes unbinding first. Binding and unbinding are both logged in the site's **Records**.
+
+## The profile
+
+[Get the profile](../api-reference/get-account-profile.mdx) to show the account's badges, passports and events with their names and pictures, as its holder sees them on their own profile. Show it to that user only: it ignores the privacy switches that hide sections from other people. It's read afresh on every call, so cache it for a few minutes.
+
+Its pictures are served from Google's hosts, Firebase Storage and Google profile photos, which don't load in mainland China.
+
+## Scope and limits
+
+Every call here needs the `accounts:link` scope. Previews and bindings together may try **30 codes a minute** per key, on top of the 120 calls a minute every key has.

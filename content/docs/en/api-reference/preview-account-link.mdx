@@ -1,0 +1,56 @@
+---
+title: Preview a binding
+description: Whose account a binding code is for, to show the user before binding.
+full: true
+---
+
+<Endpoint method="POST" path="/v1/account-links/preview" scope="accounts:link" />
+
+<ApiPage operation="previewAccountLink">
+
+Looks up the account a binding code was made for, so your app can ask the user to confirm it's theirs before [binding](./create-account-link.mdx). The code stays good. See [Binding accounts](../ticket-api/account-links.mdx) for the whole flow.
+
+## Body
+
+<Params>
+<Param name="code" type="string" required>
+The code the user scanned or typed. Case, spaces, dashes and the QR code's `SKBYLINK:` prefix are ignored.
+</Param>
+<Param name="appUserId" type="string" required>
+Your app's ID for the user, 1–64 letters, digits, `-` and `_`. It's checked here, so a user already bound is told before confirming.
+</Param>
+</Params>
+
+## Returns
+
+**200** with:
+
+<Params>
+<Param name="displayName" type="string">
+The account's name on the site.
+</Param>
+<Param name="photoURL" type="string">
+Its photo, or `""`.
+</Param>
+<Param name="email" type="string">
+Its email with only the first character and the domain shown, such as `l***@gmail.com`: enough for the user to recognise it, without your app learning it.
+</Param>
+<Param name="expiresAt" type="string">
+When the code stops working.
+</Param>
+</Params>
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 400 | `invalid-request` | `appUserId` is missing or malformed. |
+| 403 | `no-seller` | The key has no seller ID. |
+| 409 | `wechat-already-linked` | This user is already bound to an account. |
+| 409 | `account-already-linked` | The code's account is already bound to another user. |
+| 422 | `invalid-code` | No such code is waiting: it's mistyped, already used, withdrawn or expired. |
+| 429 | `rate-limited` | Over 30 codes a minute for this key, previews and bindings together. `Retry-After` says how many seconds to wait. |
+
+`invalid-code` doesn't say which of those it was, so trying codes tells nothing. The two conflicts are only reported for a good code. Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

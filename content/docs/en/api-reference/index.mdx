@@ -38,10 +38,17 @@ Keys are made by core-staff in the admin panel. See [API keys](../ticket-api/key
 | [`GET /v1/events/{eventId}`](./get-event.mdx) | `events:read` | Get one event, such as to check it just before taking payment |
 | [`POST /v1/events/{eventId}/orders`](./create-order.mdx) | `tickets:write` | Issue an order's tickets once it's paid |
 | [`GET /v1/events/{eventId}/orders/{orderId}`](./get-order.mdx) | `tickets:read` | Get an order, with whether each ticket has been used |
+| [`POST /v1/account-links/preview`](./preview-account-link.mdx) | `accounts:link` | See whose account a binding code is for |
+| [`POST /v1/account-links`](./create-account-link.mdx) | `accounts:link` | Bind your app's user to that account |
+| [`GET /v1/account-links/{appUserId}`](./get-account-link.mdx) | `accounts:link` | Get the account a user is bound to |
+| [`DELETE /v1/account-links/{appUserId}`](./delete-account-link.mdx) | `accounts:link` | Unbind a user |
+| [`GET /v1/account-links/{appUserId}/profile`](./get-account-profile.mdx) | `accounts:link` | Get the bound account's badges, passports and events |
 
 What they return:
 
 - [The Event object](./event.mdx): both kinds of event the site has, unarchived and archived, and their fields
 - [The Order object](./order.mdx): an order and its tickets
+- [The AccountLink object](./account-link.mdx): a user and the account they're bound to
+- [The AccountProfile object](./account-profile.mdx): a bound account's profile
 
 Prices stay in the seller's app, since events don't store them.

@@ -1,7 +1,7 @@
 // The request and response shown beside each endpoint's page. One copy serves
 // every language, so the English and Chinese pages can't drift apart.
 
-export type Method = 'GET' | 'POST';
+export type Method = 'GET' | 'POST' | 'DELETE';
 
 export const statusText: Record<number, string> = { 200: 'OK', 201: 'Created' };
 
@@ -63,7 +63,9 @@ const archivedEvent = {
 
 const eventId = unarchivedEvent.id;
 const orderId = 'WX20261028123456';
-const buyer = { name: '李明', email: 'liming@qq.com' };
+// The seller app's own ID for its user, which binds them to a site account.
+const appUserId = '10086';
+const buyer = { name: '李明', email: 'liming@qq.com', appUserId };
 
 function ticket(ticketId: string, type: string, redeemedAt: string | null) {
     return {
@@ -102,6 +104,62 @@ const scannedOrder = {
     ],
 };
 
+const accountUid = 'Xq3L9vKe2mPZ8hTa1RwYc5NfG7j2';
+const linkCode = 'K7MP4QXR';
+
+const accountLink = {
+    appUserId,
+    uid: accountUid,
+    displayName: 'Ming Li',
+    photoURL: 'https://lh3.googleusercontent.com/a/…',
+    nickname: '小明',
+    linkedAt: '2026-10-30T09:14:27.530Z',
+};
+
+const accountProfile = {
+    appUserId,
+    uid: accountUid,
+    displayName: 'Ming Li',
+    photoURL: 'https://lh3.googleusercontent.com/a/…',
+    bannerURL: '',
+    joinedAt: '2025-09-20T04:12:08.000Z',
+    group: 'staff',
+    title: 'Photographer',
+    titleCn: '摄影',
+    member: { since: '2026-01-10T08:00:00.000Z', until: '2027-01-11T07:59:59.999Z' },
+    badges: [
+        {
+            id: 'firstCon',
+            name: 'First Con',
+            nameCn: '初次参展',
+            description: 'Came to your first Sekai Beyond Con.',
+            descriptionCn: '第一次参加彼世界漫展。',
+            imageUrl: 'https://firebasestorage.googleapis.com/v0/b/…/o/badges%2F…',
+            earnedAt: '2025-11-15T19:02:41.000Z',
+        },
+    ],
+    passports: [
+        {
+            id: 'K2M9QX7PRA',
+            year: 2026,
+            claimedAt: '2026-01-10T08:00:00.000Z',
+            name: 'Passport 2026',
+            nameCn: '2026 通行证',
+            coverImageUrl: 'https://firebasestorage.googleapis.com/v0/b/…/o/passport-designs%2F…',
+        },
+    ],
+    events: [
+        {
+            id: archivedEvent.id,
+            title: archivedEvent.title,
+            titleCn: archivedEvent.titleCn,
+            date: archivedEvent.date,
+            icon: archivedEvent.icon,
+            staff: true,
+        },
+    ],
+};
+
 export const examples = {
     listEvents: {
         method: 'GET',
@@ -136,6 +194,43 @@ export const examples = {
         status: 200,
         response: scannedOrder,
     },
+    previewAccountLink: {
+        method: 'POST',
+        path: '/v1/account-links/preview',
+        body: { code: linkCode, appUserId },
+        status: 200,
+        response: {
+            displayName: 'Ming Li',
+            photoURL: 'https://lh3.googleusercontent.com/a/…',
+            email: 'l***@gmail.com',
+            expiresAt: '2026-10-30T09:21:03.118Z',
+        },
+    },
+    createAccountLink: {
+        method: 'POST',
+        path: '/v1/account-links',
+        body: { code: linkCode, appUserId, nickname: '小明', unionid: 'oVx5a6Kd2Qe9WmPz3RtY8uBn1Hc0' },
+        status: 201,
+        response: accountLink,
+    },
+    getAccountLink: {
+        method: 'GET',
+        path: `/v1/account-links/${appUserId}`,
+        status: 200,
+        response: accountLink,
+    },
+    deleteAccountLink: {
+        method: 'DELETE',
+        path: `/v1/account-links/${appUserId}`,
+        status: 200,
+        response: { appUserId, unlinked: true },
+    },
+    getAccountProfile: {
+        method: 'GET',
+        path: `/v1/account-links/${appUserId}/profile`,
+        status: 200,
+        response: accountProfile,
+    },
 } satisfies Record<string, Operation>;
 
 export type OperationId = keyof typeof examples;
@@ -144,4 +239,6 @@ export const objectExamples = {
     unarchivedEvent,
     archivedEvent,
     order: scannedOrder,
+    accountLink,
+    accountProfile,
 };

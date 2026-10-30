@@ -38,10 +38,17 @@ Content-Type: application/json      （仅 POST）
 | [`GET /v1/events/{eventId}`](./get-event.mdx) | `events:read` | 获取单个活动，例如在收款前再确认一次 |
 | [`POST /v1/events/{eventId}/orders`](./create-order.mdx) | `tickets:write` | 订单付款后签发其门票 |
 | [`GET /v1/events/{eventId}/orders/{orderId}`](./get-order.mdx) | `tickets:read` | 获取订单，以及每张门票是否已使用 |
+| [`POST /v1/account-links/preview`](./preview-account-link.mdx) | `accounts:link` | 查看绑定码对应的账号 |
+| [`POST /v1/account-links`](./create-account-link.mdx) | `accounts:link` | 把你的应用的用户绑定到该账号 |
+| [`GET /v1/account-links/{appUserId}`](./get-account-link.mdx) | `accounts:link` | 获取用户绑定的账号 |
+| [`DELETE /v1/account-links/{appUserId}`](./delete-account-link.mdx) | `accounts:link` | 解除用户的绑定 |
+| [`GET /v1/account-links/{appUserId}/profile`](./get-account-profile.mdx) | `accounts:link` | 获取已绑定账号的徽章、通行证和活动 |
 
 返回的对象：
 
 - [Event 对象](./event.mdx)：官网的两类活动（未归档和已归档）及其字段
 - [Order 对象](./order.mdx)：订单及其门票
+- [AccountLink 对象](./account-link.mdx)：用户及其绑定的账号
+- [AccountProfile 对象](./account-profile.mdx)：已绑定账号的个人主页
 
 票价保存在销售方的应用中，因为活动本身不存储价格。

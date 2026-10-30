@@ -24,7 +24,7 @@ description: 所有错误的统一格式，以及任何端点都可能返回的�
 | 401 | `api-key-expired` | 密钥已过期。 |
 | 403 | `missing-scope` | 密钥缺少该端点所需的权限范围。 |
 | 404 | `not-found` | 没有这个端点。 |
-| 405 | `method-not-allowed` | 请求方法错误。`Allow` 响应头给出正确的方法。 |
+| 405 | `method-not-allowed` | 请求方法错误。`Allow` 响应头给出该端点接受的方法。 |
 | 429 | `rate-limited` | 每分钟调用超过 120 次。`Retry-After` 给出需要等待的秒数。 |
 | 500 | `internal` | 我们这边出了问题。请重试。 |
 

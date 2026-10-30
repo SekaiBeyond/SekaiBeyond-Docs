@@ -30,7 +30,7 @@ The app currently requires 8 composite indexes:
 
 ## TTL policies
 
-The app relies on TTL-based auto-expiry for rate limiting, audit-log retention, deferred deletion of users/events/badges, cleanup of expired claim/activation codes, scan-event retention, and per-client scan quotas. Ten TTL policies are required:
+The app relies on TTL-based auto-expiry for rate limiting, audit-log retention, deferred deletion of users/events/badges, cleanup of expired claim/activation codes, scan-event retention, per-client scan quotas, and WeChat binding codes. Eleven TTL policies are required:
 
 | Collection              | Field       | Purpose                                                     |
 |-------------------------|-------------|-------------------------------------------------------------|
@@ -44,8 +44,9 @@ The app relies on TTL-based auto-expiry for rate limiting, audit-log retention, 
 | `badges`                | `deleteAt`  | 48h cooldown for badge deletion                             |
 | `scans`                 | `expiresAt` | Scan-event retention (365 days) for QR codes                |
 | `scanQuota`             | `expiresAt` | Per-client scan-quota windows (two windows' grace)          |
+| `wechatLinkCodes`       | `expiresAt` | Clean up WeChat binding codes once they expire (10 minutes) |
 
-All ten are defined as `fieldOverrides` with `"ttl": true`. Each override also lists the field's ascending, descending, and array-contains indexes. An override replaces a field's default indexes rather than adding to them, so leaving those out would drop indexing on the field and break queries such as the admin Users tab's `where('deleteAt', '!=', null)`. Keep them when adding a new TTL field.
+All eleven are defined as `fieldOverrides` with `"ttl": true`. Each override also lists the field's ascending, descending, and array-contains indexes. An override replaces a field's default indexes rather than adding to them, so leaving those out would drop indexing on the field and break queries such as the admin Users tab's `where('deleteAt', '!=', null)`. Keep them when adding a new TTL field.
 
 <Callout type="warn" title="Note">
   Firestore TTL requires the **Blaze plan** (pay-as-you-go). It is not available on the free Spark plan.

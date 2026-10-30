@@ -24,7 +24,7 @@ Every endpoint can also return these:
 | 401 | `api-key-expired` | The key has expired. |
 | 403 | `missing-scope` | The key lacks the scope the endpoint needs. |
 | 404 | `not-found` | No such endpoint. |
-| 405 | `method-not-allowed` | Wrong method. The `Allow` header names the right one. |
+| 405 | `method-not-allowed` | Wrong method. The `Allow` header names the ones the endpoint takes. |
 | 429 | `rate-limited` | Over 120 calls a minute. `Retry-After` says how many seconds to wait. |
 | 500 | `internal` | Something went wrong on our side. Try again. |
 

@@ -8,7 +8,7 @@ Core-staff and above create keys in the admin panel under **Tools > API Keys**. 
 - A key is shown once, when it's made. Only its SHA-256 is stored, in `apiKeys`, which no client can read (see [`firestore.rules`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.rules)). A lost key can't be recovered: revoke it and make a new one.
 - **A new key works within a few seconds of being made,** not at once. Until then it answers `invalid-api-key`, so a first call made straight away may need a retry.
 - **Revoking a key deletes it.** It stops working at once and leaves the list, and Records keep its name and its first and last few characters. An expired key gets a Delete button to clear it from the list the same way.
-- Each key has **scopes**: `events:read`, `tickets:write`, `tickets:read`.
+- Each key has **scopes**: `events:read`, `tickets:write`, `tickets:read`, `accounts:link`.
 - A key can be held to **specific events**, archived or not. By default it can use every event.
 - Each key has a **seller ID**, such as `cn-app`. Order numbers are kept per seller ID, so two apps can each have an order `1001`, and a key only places and reads its own seller's orders. Give each app its own ID, and a key that replaces another the same one, or it won't find the orders placed before.
 - Every key **expires**, after one year by default and two years at most.
@@ -27,5 +27,6 @@ Core-staff and above create keys in the admin panel under **Tools > API Keys**. 
 | `events:read` | [List events](../api-reference/list-events.mdx) and [get an event](../api-reference/get-event.mdx) |
 | `tickets:write` | [Create an order](../api-reference/create-order.mdx) |
 | `tickets:read` | [Get an order](../api-reference/get-order.mdx) |
+| `accounts:link` | [Bind accounts](./account-links.mdx): preview, create, get and delete a binding, and get a bound account's profile. Needs a seller ID |
 
 A call without the scope it needs answers `403 missing-scope`. One over the rate limit answers `429 rate-limited`, with `Retry-After` saying how many seconds to wait. See [Errors](../api-reference/errors.mdx).

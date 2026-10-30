@@ -5,6 +5,8 @@ description: 让其他应用的服务器读取我们的活动，并为付费活�
 
 门票 API 让其他应用的服务器读取我们的活动，并为付费活动售票。通过它售出的门票会进入活动的参会者名单，在入口像其他门票一样扫码入场；订单带有买家邮箱时，门票还会出现在买家在官网上的「我的门票」中。订单也可以要求我们把门票通过邮件发给买家。
 
+应用的用户还可以绑定自己的 sekaibeyond.com 账号，这样在应用中购买的门票就归该账号所有，应用也可以展示该账号的徽章、通行证和活动。
+
 <Callout type="warn" title="这是管理员级别的 API，不面向普通用户。">
   密钥看到的活动与核心成员在管理后台看到的一样，包括未发布的活动。因此密钥只发给我们自己的系统和我们信任的合作方服务器。
 </Callout>
@@ -19,6 +21,7 @@ API 返回官网自身读取的全部内容，筛选交给调用方。它的活�
 | [`GET /v1/events/{eventId}`](../api-reference/get-event.mdx) | `events:read` | 获取单个活动，例如在收款前再确认一次 |
 | [`POST /v1/events/{eventId}/orders`](../api-reference/create-order.mdx) | `tickets:write` | 订单付款后签发其门票 |
 | [`GET /v1/events/{eventId}/orders/{orderId}`](../api-reference/get-order.mdx) | `tickets:read` | 获取订单，以及每张门票是否已使用 |
+| [`/v1/account-links`](../api-reference/create-account-link.mdx) | `accounts:link` | 把应用的用户绑定到他们的账号，并读取已绑定账号的个人主页：见[绑定账号](./account-links.mdx) |
 
 票价保存在销售方的应用中，因为活动本身不存储价格。
 
@@ -30,6 +33,9 @@ API 返回官网自身读取的全部内容，筛选交给调用方。它的活�
   </Card>
   <Card title="API 密钥" href="./keys.mdx">
     权限范围、销售方 ID、有效期与速率限制。
+  </Card>
+  <Card title="绑定账号" href="./account-links.mdx">
+    让应用的用户绑定自己的 sekaibeyond.com 账号。
   </Card>
   <Card title="从中国大陆调用" href="./mainland-china.mdx">
     `api.sekaibeyond.com` 中转，以及它在大陆的可达性。

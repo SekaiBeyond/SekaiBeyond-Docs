@@ -1,0 +1,56 @@
+---
+title: 预览绑定
+description: 查看绑定码对应的账号，在绑定前展示给用户确认。
+full: true
+---
+
+<Endpoint method="POST" path="/v1/account-links/preview" scope="accounts:link" />
+
+<ApiPage operation="previewAccountLink">
+
+查询绑定码对应的账号，让你的应用在[绑定](./create-account-link.mdx)之前请用户确认这是自己的账号。绑定码在预览后仍然有效。完整流程见[绑定账号](../ticket-api/account-links.mdx)。
+
+## 请求体
+
+<Params>
+<Param name="code" type="string" required>
+用户扫描或输入的绑定码。大小写、空格、横线以及二维码的 `SKBYLINK:` 前缀都会被忽略。
+</Param>
+<Param name="appUserId" type="string" required>
+你的应用为该用户分配的 ID，1–64 个字母、数字、`-` 和 `_`。这里会检查它，所以已经绑定过的用户在确认前就会得知。
+</Param>
+</Params>
+
+## 返回
+
+**200**，包含：
+
+<Params>
+<Param name="displayName" type="string">
+账号在官网上的名称。
+</Param>
+<Param name="photoURL" type="string">
+账号的头像；没有则为 `""`。
+</Param>
+<Param name="email" type="string">
+账号的邮箱，只显示第一个字符和域名，例如 `l***@gmail.com`：足以让用户认出自己的账号，又不会让你的应用得知完整邮箱。
+</Param>
+<Param name="expiresAt" type="string">
+绑定码失效的时间。
+</Param>
+</Params>
+
+## 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|---|---|---|
+| 400 | `invalid-request` | 缺少 `appUserId` 或格式不对。 |
+| 403 | `no-seller` | 密钥没有销售方 ID。 |
+| 409 | `wechat-already-linked` | 该用户已经绑定了账号。 |
+| 409 | `account-already-linked` | 绑定码对应的账号已经绑定了其他用户。 |
+| 422 | `invalid-code` | 没有这样一个等待使用的绑定码：输错了、已使用、已撤回或已过期。 |
+| 429 | `rate-limited` | 该密钥每分钟尝试的绑定码超过 30 个（预览和绑定合计）。`Retry-After` 告知需要等待的秒数。 |
+
+`invalid-code` 不会说明是哪种情况，所以尝试绑定码得不到任何信息。两种冲突只会在绑定码有效时返回。另外还有所有端点都可能返回的错误，见[错误](./errors.mdx)。
+
+</ApiPage>

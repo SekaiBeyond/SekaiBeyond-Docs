@@ -1,0 +1,34 @@
+---
+title: Get a binding
+description: The account your app's user is bound to, if any.
+full: true
+---
+
+<Endpoint method="GET" path="/v1/account-links/{appUserId}" scope="accounts:link" />
+
+<ApiPage operation="getAccountLink">
+
+Returns the account your app's user is bound to. The user can unbind from the site at any time, and the site doesn't tell your app, so call this when the user opens the screen that shows the binding, and treat `404 not-linked` as unbound.
+
+## Path parameters
+
+<Params>
+<Param name="appUserId" type="string" required>
+Your app's ID for the user.
+</Param>
+</Params>
+
+## Returns
+
+**200** with the [AccountLink](./account-link.mdx). Its name and photo are the account's as they are now.
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 403 | `no-seller` | The key has no seller ID. |
+| 404 | `not-linked` | The user isn't bound to an account: never bound, unbound from either side, or the account was deleted. |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

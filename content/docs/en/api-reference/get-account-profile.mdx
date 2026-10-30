@@ -1,0 +1,40 @@
+---
+title: Get a profile
+description: The bound account's badges, passports and events, as its holder sees them.
+full: true
+---
+
+<Endpoint method="GET" path="/v1/account-links/{appUserId}/profile" scope="accounts:link" />
+
+<ApiPage operation="getAccountProfile">
+
+Returns the profile of the account your app's user is bound to, as its holder sees it on their own profile page: who they are, their membership, badges, passports and the events they went to, with the names and pictures already looked up.
+
+<Callout type="warn" title="Show it to that user only.">
+  It ignores the privacy switches the holder sets for other people, as their own profile page does.
+</Callout>
+
+It's read afresh on every call, so cache it for a few minutes rather than fetch it each time the screen opens.
+
+## Path parameters
+
+<Params>
+<Param name="appUserId" type="string" required>
+Your app's ID for the user.
+</Param>
+</Params>
+
+## Returns
+
+**200** with the [AccountProfile](./account-profile.mdx).
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 403 | `no-seller` | The key has no seller ID. |
+| 404 | `not-linked` | The user isn't bound to an account. |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

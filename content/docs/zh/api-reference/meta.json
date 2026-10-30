@@ -12,6 +12,14 @@
     "---订单---",
     "create-order",
     "get-order",
-    "order"
+    "order",
+    "---账号绑定---",
+    "preview-account-link",
+    "create-account-link",
+    "get-account-link",
+    "delete-account-link",
+    "get-account-profile",
+    "account-link",
+    "account-profile"
   ]
 }

@@ -1,0 +1,43 @@
+---
+title: Delete a binding
+description: Unbind your app's user from their account.
+full: true
+---
+
+<Endpoint method="DELETE" path="/v1/account-links/{appUserId}" scope="accounts:link" />
+
+<ApiPage operation="deleteAccountLink">
+
+Unbinds your app's user from their account, as the account's holder can from the site's Settings. Orders already the account's stay its, since they were bought for it; orders placed after this aren't. It's logged in the site's **Records**.
+
+## Path parameters
+
+<Params>
+<Param name="appUserId" type="string" required>
+Your app's ID for the user.
+</Param>
+</Params>
+
+## Returns
+
+**200** with:
+
+<Params>
+<Param name="appUserId" type="string">
+The user, as sent.
+</Param>
+<Param name="unlinked" type="boolean">
+Always `true`.
+</Param>
+</Params>
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 403 | `no-seller` | The key has no seller ID. |
+| 404 | `not-linked` | The user isn't bound, such as because they already unbound from the site. Treat it as done. |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

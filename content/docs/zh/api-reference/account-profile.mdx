@@ -1,0 +1,131 @@
+---
+title: AccountProfile 对象
+description: 已绑定账号的个人主页，包括徽章、通行证和活动。
+---
+
+[获取个人主页](./get-account-profile.mdx)返回的对象：已绑定账号的个人主页，与账号持有者在自己的个人主页上看到的一样，所有部分都完整返回，不受隐私开关影响。徽章、通行证和活动都带有名称和图片，你的应用不需要再去查询。
+
+## 字段
+
+<Params>
+<Param name="appUserId" type="string">
+你的应用为该用户分配的 ID。
+</Param>
+<Param name="uid" type="string">
+账号在官网上的 ID。
+</Param>
+<Param name="displayName" type="string">
+账号的名称。
+</Param>
+<Param name="photoURL" type="string">
+账号的头像；没有则为 `""`。
+</Param>
+<Param name="bannerURL" type="string">
+个人主页顶部的横幅图片；没有则为 `""`。
+</Param>
+<Param name="joinedAt" type="string">
+账号的注册时间。
+</Param>
+<Param name="group" type="string">
+`user`、`staff`、`core-staff` 或 `president`。官网分别显示为用户、工作人员、核心成员和社长。
+</Param>
+<Param name="title" type="string">
+工作人员头衔，例如 `Photographer`；没有则为 `""`。官网把它显示在身份之后：「工作人员 - 摄影」。
+</Param>
+<Param name="titleCn" type="string">
+头衔的中文；没有则为 `""`。
+</Param>
+<Param name="member" type="object | null">
+会员有效期内为会员信息，否则为 `null`。
+
+<Properties>
+<Param name="since" type="string | null">
+本次会员的开始时间。
+</Param>
+<Param name="until" type="string | null">
+会员的到期时间。
+</Param>
+</Properties>
+</Param>
+<Param name="badges" type="object[]">
+获得的徽章，最新获得的在前。
+
+<Properties>
+<Param name="id" type="string">
+徽章 ID。
+</Param>
+<Param name="name" type="string">
+徽章名称。
+</Param>
+<Param name="nameCn" type="string">
+徽章的中文名称；没有则为 `""`。
+</Param>
+<Param name="description" type="string">
+徽章说明。
+</Param>
+<Param name="descriptionCn" type="string">
+徽章的中文说明；没有则为 `""`。
+</Param>
+<Param name="imageUrl" type="string">
+徽章图片。
+</Param>
+<Param name="earnedAt" type="string | null">
+获得时间；官网没有记录时为 `null`。
+</Param>
+</Properties>
+</Param>
+<Param name="passports" type="object[]">
+绑定在该账号上的通行证，年份最新的在前，同一年份中最近激活的在前。
+
+<Properties>
+<Param name="id" type="string">
+印在通行证上的编码。
+</Param>
+<Param name="year" type="number">
+年份。
+</Param>
+<Param name="claimedAt" type="string | null">
+激活时间。
+</Param>
+<Param name="name" type="string">
+通行证设计的名称。
+</Param>
+<Param name="nameCn" type="string">
+通行证设计的中文名称；没有则为 `""`。
+</Param>
+<Param name="coverImageUrl" type="string">
+通行证设计的封面图片。
+</Param>
+</Properties>
+</Param>
+<Param name="events" type="object[]">
+该账号参加过或作为工作人员参与过的已归档活动，最近的在前。
+
+<Properties>
+<Param name="id" type="string">
+活动 ID，与 [Event](./event.mdx) 上的相同。
+</Param>
+<Param name="title" type="string">
+活动标题。
+</Param>
+<Param name="titleCn" type="string">
+活动的中文标题；没有则为 `""`。
+</Param>
+<Param name="date" type="string">
+活动日期，`YYYY-MM-DD`，太平洋时间。
+</Param>
+<Param name="icon" type="string">
+活动照片。
+</Param>
+<Param name="staff" type="boolean">
+该账号是否作为工作人员参与了这个活动。
+</Param>
+</Properties>
+</Param>
+</Params>
+
+尚未归档的活动不会出现在列表中，即使已经签到：和官网一样，活动归档后才会加入列表。
+
+## 示例
+
+<ObjectExample name="accountProfile" />

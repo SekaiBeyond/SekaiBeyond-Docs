@@ -12,6 +12,14 @@
     "---Orders---",
     "create-order",
     "get-order",
-    "order"
+    "order",
+    "---Account links---",
+    "preview-account-link",
+    "create-account-link",
+    "get-account-link",
+    "delete-account-link",
+    "get-account-profile",
+    "account-link",
+    "account-profile"
   ]
 }

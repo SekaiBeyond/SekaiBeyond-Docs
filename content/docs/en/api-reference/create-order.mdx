@@ -8,7 +8,7 @@ full: true
 
 <ApiPage operation="createOrder">
 
-Issues the tickets for an order once the buyer has paid. They go on the event's attendee list, scan at the door like any other, and show in the buyer's **My Tickets** on the site when the order carries their email. The order can also ask for them to be emailed to the buyer: see [Emailing the tickets](#emailing-the-tickets).
+Issues the tickets for an order once the buyer has paid. They go on the event's attendee list, scan at the door like any other, and show in the buyer's **My Tickets** on the site when the order carries their email, or their app ID once they've [bound their account](../ticket-api/account-links.mdx). The order can also ask for them to be emailed to the buyer: see [Emailing the tickets](#emailing-the-tickets).
 
 <Callout title="Retrying is safe.">
   Sending the same order again returns the tickets it already has, with a 200, even after the event has ended or been archived. "The same" means the same `orderId` from the same seller (see [API keys](../ticket-api/keys.mdx)), buyer and count of each type; how the lines are split or ordered doesn't matter, and nor does `sendEmail`: the first request's choice stands, and a retry never sends the email again. So after a timeout, send the order again rather than giving up or making a new order number.
@@ -37,6 +37,9 @@ Their name, at most 100 characters. Door staff see it.
 </Param>
 <Param name="email" type="string">
 Their email. With it, the tickets also show in that person's My Tickets on the site once the event is published, and a scan credits their account.
+</Param>
+<Param name="appUserId" type="string">
+Your app's ID for the buyer, 1–64 letters, digits, `-` and `_`. Send it on every order. When the buyer has bound a site account, the order is that account's: it shows in their My Tickets and a scan credits them, whatever the email. When they bind later, binding gives them this order then. See [Binding accounts](../ticket-api/account-links.mdx). It counts toward "the same order" on a retry.
 </Param>
 </Properties>
 </Param>
@@ -69,6 +72,7 @@ How many of that type, at least 1.
 |---|---|---|
 | 400 | `invalid-request` | A field is missing or malformed, and the message names it, or `sendEmail` is `true` without `buyer.email`. Or the body isn't a JSON object; sent straight to `sekaibeyond.com/api`, that gets a bare HTML 400 instead (see [Errors](./errors.mdx)). |
 | 403 | `event-not-allowed` | The key is held to other events. |
+| 403 | `no-seller` | `buyer.appUserId` is sent, but the key has no seller ID. |
 | 404 | `event-not-found` | No event has this ID. |
 | 409 | `order-conflict` | You already have an order with this `orderId`, with different contents. |
 | 422 | `event-archived` | The event has been archived. |

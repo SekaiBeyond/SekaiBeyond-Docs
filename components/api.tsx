@@ -26,14 +26,15 @@ async function Highlighted({ code, lang }: { code: string; lang: string }) {
     });
 }
 
+const methodColors: Record<Method, string> = {
+    GET: 'bg-method-get/10 text-method-get',
+    POST: 'bg-method-post/10 text-method-post',
+    DELETE: 'bg-method-delete/10 text-method-delete',
+};
+
 function MethodBadge({ method }: { method: Method }) {
     return (
-        <span
-            className={cn(
-                'rounded-md px-1.5 py-0.5 font-mono text-xs font-semibold',
-                method === 'GET' ? 'bg-method-get/10 text-method-get' : 'bg-method-post/10 text-method-post',
-            )}
-        >
+        <span className={cn('rounded-md px-1.5 py-0.5 font-mono text-xs font-semibold', methodColors[method])}>
       {method}
     </span>
     );

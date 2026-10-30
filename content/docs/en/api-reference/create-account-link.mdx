@@ -1,0 +1,53 @@
+---
+title: Create a binding
+description: Bind your app's user to the account a binding code was made for.
+full: true
+---
+
+<Endpoint method="POST" path="/v1/account-links" scope="accounts:link" />
+
+<ApiPage operation="createAccountLink">
+
+Binds your app's user to the account a binding code was made for. [Preview it](./preview-account-link.mdx) first and have the user confirm the account is theirs. See [Binding accounts](../ticket-api/account-links.mdx) for the whole flow.
+
+Binding also gives the account every order already placed with this `buyer.appUserId` (see [Create an order](./create-order.mdx)), and credits the events whose tickets were scanned at the door. It's logged in the site's **Records**.
+
+<Callout title="Retrying is safe.">
+  Sending the same code for the same user again returns the binding it made, with a 200, for as long as the code would have lasted. So after a timeout, send it again.
+</Callout>
+
+## Body
+
+<Params>
+<Param name="code" type="string" required>
+The code the user scanned or typed. Case, spaces, dashes and the QR code's `SKBYLINK:` prefix are ignored.
+</Param>
+<Param name="appUserId" type="string" required>
+Your app's ID for the user, 1–64 letters, digits, `-` and `_`. Use the same one for them for good, and send it as `buyer.appUserId` on their orders.
+</Param>
+<Param name="nickname" type="string">
+What the user is called in your app, at most 64 characters. The account's Settings shows it, so its holder can tell which user they bound.
+</Param>
+<Param name="unionid" type="string">
+The user's WeChat UnionID, when your app has one: 1–64 letters, digits, `-` and `_`. It's kept so a WeChat sign-in on the site could later find the bound account. It isn't shown anywhere.
+</Param>
+</Params>
+
+## Returns
+
+**201** with the new [AccountLink](./account-link.mdx), or **200** with the existing one when this is a retry.
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 400 | `invalid-request` | `appUserId`, `nickname` or `unionid` is malformed. |
+| 403 | `no-seller` | The key has no seller ID. |
+| 409 | `wechat-already-linked` | This user is already bound to an account. |
+| 409 | `account-already-linked` | The code's account is already bound to another user. |
+| 422 | `invalid-code` | No such code is waiting: it's mistyped, withdrawn, expired, or was used to bind someone else. |
+| 429 | `rate-limited` | Over 30 codes a minute for this key, previews and bindings together. `Retry-After` says how many seconds to wait. |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

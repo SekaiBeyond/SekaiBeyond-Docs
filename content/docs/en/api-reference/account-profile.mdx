@@ -1,0 +1,131 @@
+---
+title: The AccountProfile object
+description: A bound account's profile, with its badges, passports and events.
+---
+
+What [Get a profile](./get-account-profile.mdx) returns: the bound account's profile as its holder sees it on their own profile page, every section in full whatever its privacy switches say. Badges, passports and events come with their names and pictures, so your app needn't look anything up.
+
+## Fields
+
+<Params>
+<Param name="appUserId" type="string">
+Your app's ID for the user.
+</Param>
+<Param name="uid" type="string">
+The account's ID on the site.
+</Param>
+<Param name="displayName" type="string">
+The account's name.
+</Param>
+<Param name="photoURL" type="string">
+Its photo, or `""`.
+</Param>
+<Param name="bannerURL" type="string">
+The image across the top of its profile, or `""`.
+</Param>
+<Param name="joinedAt" type="string">
+When the account was made.
+</Param>
+<Param name="group" type="string">
+`user`, `staff`, `core-staff` or `president`. The site shows them as User, Staff, Core Staff and President (用户, 工作人员, 核心成员, 社长).
+</Param>
+<Param name="title" type="string">
+A staff title, such as `Photographer`, or `""`. The site shows it after the group: "Staff - Photographer".
+</Param>
+<Param name="titleCn" type="string">
+The title in Chinese, or `""`.
+</Param>
+<Param name="member" type="object | null">
+The membership while it's active, or `null`.
+
+<Properties>
+<Param name="since" type="string | null">
+When this membership started.
+</Param>
+<Param name="until" type="string | null">
+When it runs out.
+</Param>
+</Properties>
+</Param>
+<Param name="badges" type="object[]">
+The badges earned, the latest first.
+
+<Properties>
+<Param name="id" type="string">
+The badge's ID.
+</Param>
+<Param name="name" type="string">
+Its name.
+</Param>
+<Param name="nameCn" type="string">
+Its name in Chinese, or `""`.
+</Param>
+<Param name="description" type="string">
+What it's for.
+</Param>
+<Param name="descriptionCn" type="string">
+What it's for, in Chinese, or `""`.
+</Param>
+<Param name="imageUrl" type="string">
+Its picture.
+</Param>
+<Param name="earnedAt" type="string | null">
+When the account earned it, or `null` when the site has no date for it.
+</Param>
+</Properties>
+</Param>
+<Param name="passports" type="object[]">
+The passports bound to the account, the newest year first and then the latest activated.
+
+<Properties>
+<Param name="id" type="string">
+The code printed on the passport.
+</Param>
+<Param name="year" type="number">
+Its year.
+</Param>
+<Param name="claimedAt" type="string | null">
+When it was activated.
+</Param>
+<Param name="name" type="string">
+Its design's name.
+</Param>
+<Param name="nameCn" type="string">
+Its design's name in Chinese, or `""`.
+</Param>
+<Param name="coverImageUrl" type="string">
+Its design's cover art.
+</Param>
+</Properties>
+</Param>
+<Param name="events" type="object[]">
+The archived events the account went to or worked at as staff, the latest first.
+
+<Properties>
+<Param name="id" type="string">
+The event's ID, as on the [Event](./event.mdx).
+</Param>
+<Param name="title" type="string">
+Its title.
+</Param>
+<Param name="titleCn" type="string">
+Its title in Chinese, or `""`.
+</Param>
+<Param name="date" type="string">
+Its date, `YYYY-MM-DD` in Pacific time.
+</Param>
+<Param name="icon" type="string">
+Its photo.
+</Param>
+<Param name="staff" type="boolean">
+Whether the account worked at it as staff.
+</Param>
+</Properties>
+</Param>
+</Params>
+
+Events not yet archived aren't listed, even once checked in: they join the list when they're archived, as on the site.
+
+## Example
+
+<ObjectExample name="accountProfile" />

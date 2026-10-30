@@ -14,9 +14,9 @@ function json(value: unknown, indent: string) {
     return JSON.stringify(value, null, 2).replaceAll('\n', `\n${indent}`);
 }
 
-function curl({ path, body }: Operation) {
-    // -d makes it a POST, the only method with a body.
-    const lines = [`curl ${baseUrl}${path}`, `-H "Authorization: Bearer $SEKAI_API_KEY"`];
+function curl({ method, path, body }: Operation) {
+    // -d makes it a POST, the only method with a body; DELETE has to be named.
+    const lines = [`curl ${method === 'DELETE' ? '-X DELETE ' : ''}${baseUrl}${path}`, `-H "Authorization: Bearer $SEKAI_API_KEY"`];
     if (body !== undefined) {
         lines.push(`-H "Content-Type: application/json"`, `-d '${json(body, '  ')}'`);
     }

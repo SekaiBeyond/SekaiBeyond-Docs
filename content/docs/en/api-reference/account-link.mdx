@@ -1,0 +1,35 @@
+---
+title: The AccountLink object
+description: Your app's user and the sekaibeyond.com account they're bound to.
+---
+
+What [Create a binding](./create-account-link.mdx) and [Get a binding](./get-account-link.mdx) return.
+
+A binding pairs one of your app's users with one sekaibeyond.com account. Each side is bound at most once. See [Binding accounts](../ticket-api/account-links.mdx).
+
+## Fields
+
+<Params>
+<Param name="appUserId" type="string">
+Your app's ID for the user, as sent when binding.
+</Param>
+<Param name="uid" type="string">
+The account's ID on the site. It never changes, so it's what to store.
+</Param>
+<Param name="displayName" type="string">
+The account's name on the site, as it is now.
+</Param>
+<Param name="photoURL" type="string">
+The account's photo as it is now, or `""`.
+</Param>
+<Param name="nickname" type="string">
+What the user was called in your app when they bound, as sent.
+</Param>
+<Param name="linkedAt" type="string">
+When they bound.
+</Param>
+</Params>
+
+## Example
+
+<ObjectExample name="accountLink" />
