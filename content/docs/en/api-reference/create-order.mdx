@@ -8,7 +8,7 @@ full: true
 
 <ApiPage operation="createOrder">
 
-Issues the tickets for an order once the buyer has paid. They go on the event's attendee list, scan at the door like any other, and show in the buyer's **My Tickets** on the site when the order carries their email. The order can also ask for them to be emailed to the buyer: see [Emailing the tickets](#emailing-the-tickets).
+Issues the tickets for an order once the buyer has paid. They go on the event's attendee list and scan at the door like any other. The buyer holds them in your app: they don't show in anyone's **My Tickets** on the site, whatever email the order carries. The order can also ask for them to be emailed to the buyer: see [Emailing the tickets](#emailing-the-tickets).
 
 <Callout title="Retrying is safe.">
   Sending the same order again returns the tickets it already has, with a 200, even after the event has ended or been archived. "The same" means the same `orderId` from the same seller (see [API keys](../ticket-api/keys.mdx)), buyer and count of each type; how the lines are split or ordered doesn't matter, and nor does `sendEmail`: the first request's choice stands, and a retry never sends the email again. So after a timeout, send the order again rather than giving up or making a new order number.
@@ -36,7 +36,7 @@ Who bought the tickets.
 Their name, at most 100 characters. Door staff see it.
 </Param>
 <Param name="email" type="string">
-Their email. With it, the tickets also show in that person's My Tickets on the site once the event is published, and a scan credits their account.
+Their email, where the tickets are sent when `sendEmail` is `true`. It's only an address and isn't matched to an account on the site: the tickets don't show in anyone's My Tickets there, and a scan credits no account.
 </Param>
 </Properties>
 </Param>
