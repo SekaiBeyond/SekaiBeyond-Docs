@@ -15,7 +15,14 @@ The site deploys automatically to Firebase Hosting when you push to `main` via G
 
 1. Go to [console.firebase.google.com](https://console.firebase.google.com) and create a project
 2. Add a **Web app** and copy the Firebase config values — you'll paste these into [GitHub secrets](#2-github-repository-secrets) for CI, and into [`.env`](#3-local-development) to run the dev server against production
-3. Enable **Google sign-in** under Authentication > Sign-in method
+3. Configure **Authentication**:
+   - Create or copy the Web OAuth client ID for the **Sign in with Google** button (`VITE_GOOGLE_CLIENT_ID` in GitHub secrets and `.env`, and `GOOGLE_CLIENT_ID` in `functions/.env` for local deploys).
+   - Set the `PASSWORD_PEPPER` Functions secret once to a long random string (`firebase functions:secrets:set PASSWORD_PEPPER`); changing it later invalidates every password.
+   - Grant the default compute service account (`PROJECT_NUMBER-compute@developer.gserviceaccount.com`) the **Service Account Token Creator** role (`roles/iam.serviceAccountTokenCreator`) on itself and enable the IAM Service Account Credentials API (`iamcredentials.googleapis.com`), so the sign-in functions can mint Firebase custom tokens:
+
+     ```bash
+     gcloud iam service-accounts add-iam-policy-binding PROJECT_NUMBER-compute@developer.gserviceaccount.com --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" --role="roles/iam.serviceAccountTokenCreator" --project=PROJECT_ID
+     ```
 4. Create a **Cloud Firestore** database (choose a nearby region)
 5. Set Firestore **Security Rules** — copy the contents of [`firestore.rules`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.rules) into the Firestore Rules editor
 6. Deploy the required **Composite Indexes**:
@@ -35,7 +42,7 @@ The site deploys automatically to Firebase Hosting when you push to `main` via G
    firebase deploy --only functions
    ```
 
-9. Configure **Firestore TTL Policies** — the app relies on TTL-based auto-expiry for rate limiting, audit-log retention, deferred deletion of users/events/badges, cleanup of expired claim/activation codes, scan-event retention, and per-client scan quotas. All ten policies are defined in [`firestore.indexes.json`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.indexes.json), so they deploy with the indexes:
+9. Configure **Firestore TTL Policies** — the app relies on TTL-based auto-expiry for rate limiting, audit-log retention, deferred deletion of users/events/badges, cleanup of expired claim/activation/email codes and email-change undo links, scan-event retention, and per-client scan quotas. All twelve policies are defined in [`firestore.indexes.json`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.indexes.json), so they deploy with the indexes:
 
    ```bash
    firebase deploy --only firestore:indexes
@@ -47,7 +54,7 @@ The site deploys automatically to Firebase Hosting when you push to `main` via G
 
    See [TTL policies](./firestore.mdx#ttl-policies) for each policy and what to keep when adding one.
 
-10. Configure **outbound email (Resend)** — paid event ticket emails are delivered through [Resend](https://resend.com). Follow [Ticket Email](./email.mdx) to verify the domain, create the API key and store it as the `RESEND_API_KEY` Functions secret. CI deploys are non-interactive, so the secret must exist before the first CI deploy of the email functions, or the deploy fails.
+10. Configure **outbound email (Resend) and Wallet passes (WalletWallet)** — ticket and account emails are delivered through [Resend](https://resend.com); follow [Ticket Email](./email.mdx) to verify the domain, create the API key and store it as the `RESEND_API_KEY` Functions secret. Apple/Google Wallet passes (`{PUBLIC_ORIGIN}/api/wallet-pass`) use [WalletWallet](https://walletwallet.dev); store its API key with `firebase functions:secrets:set WALLETWALLET_API_KEY`. CI deploys are non-interactive, so secrets bound by functions (`RESEND_API_KEY`, `PASSWORD_PEPPER`, `WALLETWALLET_API_KEY`) must exist before the first CI deploy, or the deploy fails.
 
 11. Configure **Firebase App Check** — the app initializes App Check with reCAPTCHA v3 to protect Firestore, Storage, and callable Functions from unauthorized clients. Follow [App Check](./app-check.mdx) before enforcing it in Firebase Console: enforced without that setup, all reads/writes fail with `FirebaseError: Missing or insufficient permissions`.
 
@@ -64,7 +71,7 @@ The site deploys automatically to Firebase Hosting when you push to `main` via G
     firebase deploy --only functions
     ```
 
-    The same mechanism applies to the optional settings `RESEND_DAILY_CAP` (default 100), `SEND_CHUNK_SIZE` (default 100), `RESEND_QUEUE_CAP` (default 500), `IMPORT_MAX_ROWS` (default 1000), `MAX_UPLOAD_SIZE_MB` (default 10), and `SCAN_CLIENT_SALT`. The salt has a fallback in source, so set your own to keep the hashed scan-client keys from being reversed by someone holding both the source and a database export. `functions/.env.example` describes each one. Note that `RESEND_API_KEY` is *not* one of these — it is a Secret Manager secret, set via `firebase functions:secrets:set` (see [Ticket Email](./email.mdx#2-store-the-api-key-as-a-functions-secret)).
+    The same mechanism applies to the optional settings `RESEND_DAILY_CAP` (default 100), `ACCOUNT_MAIL_RESERVE` (default 20), `NOTICE_MAIL_RESERVE` (default 10), `CODE_MAIL_HOURLY_CAP` (default 20), `SEND_CHUNK_SIZE` (default 100), `RESEND_QUEUE_CAP` (default 500), `WALLET_PASS_MONTHLY_CAP` (default 1000), `WALLET_PASS_DAILY_CAP_PER_TICKET` (default 2), `WALLET_PASS_ORGANIZATION` (default `Sekai Beyond`), `IMPORT_MAX_ROWS` (default 1000), `MAX_UPLOAD_SIZE_MB` (default 10), `MAX_VIDEO_UPLOAD_SIZE_MB` (default 20), and `SCAN_CLIENT_SALT`. The salt has a fallback in source, so set your own to keep the hashed scan-client keys from being reversed by someone holding both the source and a database export. `functions/.env.example` describes each one. Note that `RESEND_API_KEY`, `PASSWORD_PEPPER`, and `WALLETWALLET_API_KEY` are *not* set in dotenv — they are Secret Manager secrets set via `firebase functions:secrets:set`.
 
 13. **Maps need no setup.** The **Parking Guide** and the admin panel's maps (the Locations map, the map picker for venues and QR spots, and the QR spots map) draw [OpenFreeMap](https://openfreemap.org) tiles of OpenStreetMap data with MapLibre GL: no key, no billing, no request limit. The map picker's place search uses OpenStreetMap's [Nominatim](https://nominatim.org/release-docs/latest/api/Search/), whose usage policy allows a search when someone asks for one (at most one a second, and no search-as-you-type), which is how the picker uses it.
 
@@ -87,9 +94,10 @@ Go to your repo > **Settings** > **Secrets and variables** > **Actions**, and ad
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Your sender ID                      |
 | `VITE_FIREBASE_APP_ID`              | Your app ID                         |
 | `VITE_RECAPTCHA_SITE_KEY`           | reCAPTCHA v3 site key (App Check)   |
+| `VITE_GOOGLE_CLIENT_ID`             | Web OAuth client ID (Google sign-in)|
 | `FIREBASE_SERVICE_ACCOUNT`          | Service account JSON (see below)    |
 
-The `VITE_*` secrets are injected as build-time environment variables. `FIREBASE_SERVICE_ACCOUNT` authenticates the deploy step.
+The `VITE_*` secrets are injected as build-time environment variables (and `VITE_GOOGLE_CLIENT_ID` is also written to `functions/.env` as `GOOGLE_CLIENT_ID`). `FIREBASE_SERVICE_ACCOUNT` authenticates the deploy step.
 
 <Callout title="Note">
   The `.firebasestorage.app` suffix is the default for Firebase projects created after October 2024. Older projects use `.appspot.com` — use whichever format Firebase Console shows for your bucket.
@@ -102,7 +110,7 @@ The `VITE_*` secrets are injected as build-time environment variables. `FIREBASE
 3. Name it something like `github-actions-deploy`
 4. Grant these roles:
    - **Firebase Admin** (broad, simplest), or more narrowly: **Firebase Hosting Admin**, **Cloud Functions Admin**, **Firebase Rules Admin**, **Storage Admin**
-   - **Secret Manager Admin** (`roles/secretmanager.admin`) — required to deploy the secret-bound email functions; not covered by Firebase Admin (see [Ticket Email](./email.mdx#2-store-the-api-key-as-a-functions-secret))
+   - **Secret Manager Admin** (`roles/secretmanager.admin`) — required to deploy the secret-bound functions; not covered by Firebase Admin (see [Ticket Email](./email.mdx#2-store-the-api-key-as-a-functions-secret))
    - **Cloud Scheduler Admin** (`roles/cloudscheduler.admin`) — required to create/update the Cloud Scheduler jobs behind the `scheduledMailDrain` and `uwParkingNightlySync` scheduled functions; not covered by Firebase Admin or Cloud Functions Admin. Without it, deploys that change the function's schedule fail with `403 ... lacks IAM permission "cloudscheduler.jobs.update"`.
    - **Service Account User**
 5. After creating, open the service account, go to the **Keys** tab, click **Add Key** > **Create new key** > **JSON**, and download the file
@@ -128,11 +136,11 @@ Pushing to `main` triggers the GitHub Actions workflow (`.github/workflows/deplo
 
 1. Installs dependencies (root and `functions/`)
 2. Typechecks, so a type error stops the deploy before anything ships
-3. Builds the site with Firebase env vars from secrets
+3. Builds the site with Firebase env vars from secrets, writes `GOOGLE_CLIENT_ID` to `functions/.env`, and generates `firebase.generated.json` with updated CSP script hashes
 4. Authenticates to Google Cloud via the service account
-5. Runs `firebase deploy` (firebase-tools pinned to major version 15) — ships hosting, Cloud Functions, Firestore rules/indexes/TTL policies, and Storage rules in a single command. Functions whose source hasn't changed are skipped, and hosting is released last so the new frontend never goes live ahead of a function it calls.
+5. Runs `firebase deploy --only functions` first, then `firebase deploy --except functions` (firebase-tools pinned to major version 15). Deploying functions on their own first ensures that if a functions deploy stops (for instance, when a deleted function still exists in production and non-interactive mode refuses to delete it, or a secret is missing), new rules and frontend aren't released over the old functions. Functions whose source hasn't changed are skipped, and hosting is released last so the new frontend never goes live ahead of a function or rule it calls.
 
-Pushes that only touch `README.md`, `CONTRIBUTING.md`, `Trademarks.md`, or `LICENSE` don't deploy.
+Pushes that only touch `cloudflare/**`, `README.md`, `CONTRIBUTING.md`, `Trademarks.md`, or `LICENSE` don't deploy.
 
 You can also trigger a deployment manually from the **Actions** tab > **Deploy to Firebase** > **Run workflow**.
 

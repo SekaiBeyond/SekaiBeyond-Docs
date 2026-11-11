@@ -22,10 +22,14 @@ Every endpoint can also return these:
 | 401 | `missing-api-key` | There's no `Authorization: Bearer` header. |
 | 401 | `invalid-api-key` | The key isn't one of ours, or has been revoked. |
 | 401 | `api-key-expired` | The key has expired. |
-| 403 | `missing-scope` | The key lacks the scope the endpoint needs. |
+| 401 | `invalid-token` | The ID token isn't from a sign-in to a registered app, or its app was removed or turned sign-in off. |
+| 401 | `session-ended` | The person has signed out everywhere (or their account was deleted) since this sign-in was issued. |
+| 403 | `api-key-required` | Calling an order endpoint with a person's sign-in instead of an API key. |
+| 403 | `sign-in-required` | Calling a person endpoint (`/v1/me`, `/v1/team`, `/v1/events/{eventId}/staff`) with an API key instead of a person's sign-in. |
+| 403 | `missing-scope` | The key or the app lacks the scope the endpoint needs. |
 | 404 | `not-found` | No such endpoint. |
 | 405 | `method-not-allowed` | Wrong method. The `Allow` header names the right one. |
-| 429 | `rate-limited` | Over 120 calls a minute. `Retry-After` says how many seconds to wait. |
+| 429 | `rate-limited` | Over 120 calls a minute for a key, or 60 calls a minute for a person in an app. `Retry-After` says how many seconds to wait. |
 | 500 | `internal` | Something went wrong on our side. Try again. |
 
 ## From the relay

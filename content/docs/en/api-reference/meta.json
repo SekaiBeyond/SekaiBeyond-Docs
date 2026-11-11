@@ -5,6 +5,11 @@
   "pages": [
     "index",
     "errors",
+    "---People---",
+    "get-me",
+    "list-team",
+    "list-event-staff",
+    "person",
     "---Events---",
     "list-events",
     "get-event",

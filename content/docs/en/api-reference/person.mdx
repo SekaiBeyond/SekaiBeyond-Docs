@@ -1,0 +1,35 @@
+---
+title: The Person object
+description: A person's account here, without their email.
+---
+
+What [Get the signed-in person](./get-me.mdx), [List the team](./list-team.mdx) and [List an event's staff](./list-event-staff.mdx) return.
+
+It never includes the person's email.
+
+## Fields
+
+<Params>
+<Param name="uid" type="string">
+The person's account ID on the site, and the `uid` of their Firebase user in a registered app's project.
+</Param>
+<Param name="displayName" type="string">
+Their display name.
+</Param>
+<Param name="photoURL" type="string">
+URL of their profile photo, or `""` for none.
+</Param>
+<Param name="group" type="string">
+Their group on the site: `president`, `core-staff`, `staff` or `user`.
+</Param>
+<Param name="title" type="string">
+Their English title on the team page, or `""`.
+</Param>
+<Param name="titleCn" type="string">
+Their Chinese title on the team page, or `""`.
+</Param>
+</Params>
+
+## Example
+
+<ObjectExample name="person" />

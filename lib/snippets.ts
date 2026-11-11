@@ -14,9 +14,12 @@ function json(value: unknown, indent: string) {
     return JSON.stringify(value, null, 2).replaceAll('\n', `\n${indent}`);
 }
 
-function curl({ path, body }: Operation) {
+const envVar = ({ auth }: Operation) => (auth === 'token' ? 'SEKAI_ID_TOKEN' : 'SEKAI_API_KEY');
+
+function curl(op: Operation) {
+    const { path, body } = op;
     // -d makes it a POST, the only method with a body.
-    const lines = [`curl ${baseUrl}${path}`, `-H "Authorization: Bearer $SEKAI_API_KEY"`];
+    const lines = [`curl ${baseUrl}${path}`, `-H "Authorization: Bearer $${envVar(op)}"`];
     if (body !== undefined) {
         lines.push(`-H "Content-Type: application/json"`, `-d '${json(body, '  ')}'`);
     }
@@ -58,8 +61,9 @@ const jsLiteral: LiteralStyle = {
     scalar: (v) => (typeof v === 'string' ? jsString(v) : JSON.stringify(v)),
 };
 
-function python({ method, path, body }: Operation) {
-    const args = [`"${baseUrl}${path}"`, `headers={"Authorization": f"Bearer {os.environ['SEKAI_API_KEY']}"}`];
+function python(op: Operation) {
+    const { method, path, body } = op;
+    const args = [`"${baseUrl}${path}"`, `headers={"Authorization": f"Bearer {os.environ['${envVar(op)}']}"}`];
     if (body !== undefined) args.push(`json=${literal(body, '    ', pythonLiteral)}`);
     args.push('timeout=30');
 
@@ -72,9 +76,9 @@ ${args.map((a) => `    ${a},`).join('\n')}
 print(response.status_code, response.json())`;
 }
 
-function javascript({ method, path, body }: Operation) {
-    // biome-ignore lint/suspicious/noTemplateCurlyInString: the ${…} is in the generated Node.js code
-    const headers = ['Authorization: `Bearer ${process.env.SEKAI_API_KEY}`,'];
+function javascript(op: Operation) {
+    const { method, path, body } = op;
+    const headers = [`Authorization: \`Bearer \${process.env.${envVar(op)}}\`,`];
     if (body !== undefined) headers.push(`'Content-Type': 'application/json',`);
 
     const init = [
@@ -89,7 +93,8 @@ ${init.map((line) => `  ${line}`).join('\n')}
 console.log(response.status, await response.json());`;
 }
 
-function go({ method, path, body }: Operation) {
+function go(op: Operation) {
+    const { method, path, body } = op;
     const imports = body !== undefined ? ['bytes', 'fmt', 'io', 'net/http', 'os'] : ['fmt', 'io', 'net/http', 'os'];
     const lines: string[] = [];
     if (body !== undefined) {
@@ -99,7 +104,7 @@ function go({ method, path, body }: Operation) {
         lines.push(`req, err := http.NewRequest("${method}", "${baseUrl}${path}", nil)`);
     }
     lines.push('if err != nil {', '\tpanic(err)', '}');
-    lines.push('req.Header.Set("Authorization", "Bearer "+os.Getenv("SEKAI_API_KEY"))');
+    lines.push(`req.Header.Set("Authorization", "Bearer "+os.Getenv("${envVar(op)}"))`);
     if (body !== undefined) lines.push('req.Header.Set("Content-Type", "application/json")');
     lines.push(
         '',
@@ -126,7 +131,8 @@ ${lines.map((line) => (line ? `\t${line}` : line)).join('\n')}
 }`;
 }
 
-function java({ method, path, body }: Operation) {
+function java(op: Operation) {
+    const { method, path, body } = op;
     const pad = '        ';
     const lines: string[] = [];
     if (body !== undefined) {
@@ -136,7 +142,7 @@ function java({ method, path, body }: Operation) {
     lines.push(
         'HttpRequest request = HttpRequest.newBuilder()',
         `    .uri(URI.create("${baseUrl}${path}"))`,
-        '    .header("Authorization", "Bearer " + System.getenv("SEKAI_API_KEY"))',
+        `    .header("Authorization", "Bearer " + System.getenv("${envVar(op)}"))`,
     );
     if (body !== undefined) {
         lines.push(

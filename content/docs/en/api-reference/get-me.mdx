@@ -1,0 +1,31 @@
+---
+title: Get the signed-in person
+description: The person calling, as they are now.
+full: true
+---
+
+<Endpoint method="GET" path="/v1/me" />
+
+<ApiPage operation="getMe">
+
+Returns the person signed in to the app, as they are now on the site. Needs a person's sign-in (see [Sign in with Sekai Beyond](../ticket-api/sign-in.mdx)), and no scope.
+
+Use this to read the person's current `group`, `displayName`, `photoURL`, `title` and `titleCn`, which may have changed since their custom token was minted.
+
+## Parameters
+
+None.
+
+## Returns
+
+**200** with the [Person](./person.mdx).
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 403 | `sign-in-required` | Called with a server API key instead of a person's sign-in. |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

@@ -8,17 +8,17 @@ import { appName } from '@/lib/shared';
 const copy = {
     en: {
         title: 'Build with Sekai Beyond',
-        lead: 'Sell tickets for our events from your own app with the ticket API, and find how the Sekai Beyond website is built, tested and deployed.',
+        lead: 'Sign people in to your app with their Sekai Beyond account, sell tickets for our events from your server, and find how the Sekai Beyond website is built, tested and deployed.',
         start: 'Get started',
         reference: 'API reference',
         tryIt: 'Your first call',
-        tryItLead: 'Every request carries a key in the Authorization header. List the events your key can see:',
+        tryItLead: 'Every request carries a key or a sign-in token in the Authorization header. List the events your key can see:',
         sections: [
             {
                 href: 'ticket-api',
                 icon: BookOpen,
                 title: 'Ticket API',
-                body: 'What the API does, getting a key, and calling it from mainland China.',
+                body: 'Registering apps, signing people in, getting a key, and calling from mainland China.',
             },
             {
                 href: 'api-reference',
@@ -36,17 +36,17 @@ const copy = {
     },
     zh: {
         title: '基于 Sekai Beyond 开发',
-        lead: '通过门票 API，在你自己的应用里为我们的活动售票；也可以在这里了解 Sekai Beyond 官网如何构建、测试与部署。',
+        lead: '让用户使用彼世界账号登录你的应用，在你的服务器上为我们的活动售票；也可以在这里了解 Sekai Beyond 官网如何构建、测试与部署。',
         start: '快速上手',
         reference: 'API 参考',
         tryIt: '第一次调用',
-        tryItLead: '每个请求都在 Authorization 请求头中携带密钥。列出你的密钥可以看到的活动：',
+        tryItLead: '每个请求都在 Authorization 请求头中携带密钥或登录令牌。列出你的密钥可以看到的活动：',
         sections: [
             {
                 href: 'ticket-api',
                 icon: BookOpen,
                 title: '门票 API',
-                body: 'API 能做什么、如何获取密钥，以及如何从中国大陆调用。',
+                body: '登记应用、使用彼世界账号登录、获取密钥，以及如何从中国大陆调用。',
             },
             {
                 href: 'api-reference',

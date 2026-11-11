@@ -1,0 +1,31 @@
+---
+title: 获取当前登录用户
+description: 当前发起调用的登录用户此刻的信息。
+full: true
+---
+
+<Endpoint method="GET" path="/v1/me" />
+
+<ApiPage operation="getMe">
+
+返回已登录该应用的用户此刻在官网上的信息。需要用户的登录凭证（见[使用彼世界账号登录](../ticket-api/sign-in.mdx)），不需要任何权限范围。
+
+用它读取该用户当前的 `group`、`displayName`、`photoURL`、`title` 和 `titleCn`——这些信息在签发自定义令牌后可能已经发生变化。
+
+## 参数
+
+无。
+
+## 返回
+
+**200**，返回 [Person](./person.mdx)。
+
+## 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|---|---|---|
+| 403 | `sign-in-required` | 使用了服务器 API 密钥（而非用户的登录凭证）发起调用。 |
+
+以及所有端点都可能返回的错误，见[错误](./errors.mdx)。
+
+</ApiPage>

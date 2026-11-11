@@ -11,7 +11,7 @@ full: true
 Issues the tickets for an order once the buyer has paid. They go on the event's attendee list and scan at the door like any other. The buyer holds them in your app: they don't show in anyone's **My Tickets** on the site, whatever email the order carries. The order can also ask for them to be emailed to the buyer: see [Emailing the tickets](#emailing-the-tickets).
 
 <Callout title="Retrying is safe.">
-  Sending the same order again returns the tickets it already has, with a 200, even after the event has ended or been archived. "The same" means the same `orderId` from the same seller (see [API keys](../ticket-api/keys.mdx)), buyer and count of each type; how the lines are split or ordered doesn't matter, and nor does `sendEmail`: the first request's choice stands, and a retry never sends the email again. So after a timeout, send the order again rather than giving up or making a new order number.
+  Sending the same order again returns the tickets it already has, with a 200, even after the event has ended or been archived. "The same" means the same `orderId` from the same app (see [Apps and API keys](../ticket-api/keys.mdx)), buyer and count of each type; how the lines are split or ordered doesn't matter, and nor does `sendEmail`: the first request's choice stands, and a retry never sends the email again. So after a timeout, send the order again rather than giving up or making a new order number.
 </Callout>
 
 ## Path parameters
@@ -26,7 +26,7 @@ The event's ID. It must be on sale (`onSale: true` on the [Event](./event.mdx)).
 
 <Params>
 <Param name="orderId" type="string" required>
-Your own order number, 1–64 letters, digits, `-` and `_`. It names the order from then on. Order numbers are per seller ID, so another app's order with the same number is a different order.
+Your own order number, 1–64 letters, digits, `-` and `_`. It names the order from then on. Order numbers are per app ID, so another app's order with the same number is a different order.
 </Param>
 <Param name="buyer" type="object" required>
 Who bought the tickets.
@@ -68,6 +68,7 @@ How many of that type, at least 1.
 | Status | Code | When |
 |---|---|---|
 | 400 | `invalid-request` | A field is missing or malformed, and the message names it, or `sendEmail` is `true` without `buyer.email`. Or the body isn't a JSON object; sent straight to `sekaibeyond.com/api`, that gets a bare HTML 400 instead (see [Errors](./errors.mdx)). |
+| 403 | `api-key-required` | Called with a person's sign-in instead of a server API key. |
 | 403 | `event-not-allowed` | The key is held to other events. |
 | 404 | `event-not-found` | No event has this ID. |
 | 409 | `order-conflict` | You already have an order with this `orderId`, with different contents. |

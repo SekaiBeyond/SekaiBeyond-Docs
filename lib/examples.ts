@@ -9,10 +9,39 @@ export interface Operation {
     method: Method;
     /** With example values filled in, as a caller would send it. */
     path: string;
+    /** Whether the example is called with a server API key (default) or a signed-in person's ID token. */
+    auth?: 'key' | 'token';
     body?: unknown;
     status: number;
     response: unknown;
 }
+
+const president = {
+    uid: 'p9Qr2St5Uv8Wx1Yz4Ab7',
+    displayName: 'Aoi',
+    photoURL: 'https://firebasestorage.googleapis.com/v0/b/…/o/avatars%2F…',
+    group: 'president',
+    title: 'President',
+    titleCn: '社长',
+};
+
+const person = {
+    uid: 'fuD4lKy5QIf0WMxCDLAUvkq4su32',
+    displayName: 'Mika',
+    photoURL: 'https://firebasestorage.googleapis.com/v0/b/…/o/avatars%2F…',
+    group: 'core-staff',
+    title: 'Designer',
+    titleCn: '设计师',
+};
+
+const eventStaffMember = {
+    uid: 'm4Nk7Lp0Qr3St6Uv9Wx2',
+    displayName: 'Ren',
+    photoURL: '',
+    group: 'user',
+    title: '',
+    titleCn: '',
+};
 
 const unarchivedEvent = {
     id: 'k3Xq9VbLm2PzR8TaYw4N',
@@ -28,6 +57,7 @@ const unarchivedEvent = {
     published: true,
     paid: true,
     deleteAt: null,
+    con: { year: 2026 },
     startAt: '2026-11-14T18:00:00.000Z',
     endAt: '2026-11-15T02:00:00.000Z',
     poster: 'https://firebasestorage.googleapis.com/v0/b/…/o/upcoming-events%2F…',
@@ -54,6 +84,7 @@ const archivedEvent = {
     published: true,
     paid: false,
     deleteAt: null,
+    con: null,
     date: '2026-04-18',
     tagIds: ['gameNight'],
     icon: 'https://firebasestorage.googleapis.com/v0/b/…/o/events%2F…',
@@ -103,6 +134,27 @@ const scannedOrder = {
 };
 
 export const examples = {
+    getMe: {
+        method: 'GET',
+        path: '/v1/me',
+        auth: 'token',
+        status: 200,
+        response: person,
+    },
+    listTeam: {
+        method: 'GET',
+        path: '/v1/team',
+        auth: 'token',
+        status: 200,
+        response: { people: [president, person] },
+    },
+    listEventStaff: {
+        method: 'GET',
+        path: `/v1/events/${eventId}/staff`,
+        auth: 'token',
+        status: 200,
+        response: { eventId, staff: [person, eventStaffMember] },
+    },
     listEvents: {
         method: 'GET',
         path: '/v1/events',
@@ -141,6 +193,7 @@ export const examples = {
 export type OperationId = keyof typeof examples;
 
 export const objectExamples = {
+    person,
     unarchivedEvent,
     archivedEvent,
     order: scannedOrder,

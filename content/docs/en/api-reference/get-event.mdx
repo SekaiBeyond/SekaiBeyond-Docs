@@ -8,7 +8,7 @@ full: true
 
 <ApiPage operation="getEvent">
 
-Returns one event, archived or not. Call it just before taking payment to check that `onSale` is still `true`.
+Returns one event, archived or not, if the caller may see it (see [List events](./list-events.mdx)). Call it just before taking payment to check that `onSale` is still `true`.
 
 ## Path parameters
 
@@ -27,7 +27,7 @@ The event's ID, from [List events](./list-events.mdx).
 | Status | Code | When |
 |---|---|---|
 | 403 | `event-not-allowed` | The key is held to other events. |
-| 404 | `event-not-found` | No event has this ID. |
+| 404 | `event-not-found` | No event has this ID, or it's an unpublished event the signed-in person can't see. |
 
 Plus the ones every endpoint can return: see [Errors](./errors.mdx).
 

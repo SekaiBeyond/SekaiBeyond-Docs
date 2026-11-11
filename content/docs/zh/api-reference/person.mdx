@@ -1,0 +1,35 @@
+---
+title: Person 对象
+description: 用户在本站的账号信息，不含邮箱。
+---
+
+[获取当前登录用户](./get-me.mdx)、[列出团队名单](./list-team.mdx)和[列出活动工作人员](./list-event-staff.mdx)返回的对象。
+
+它绝不包含用户的邮箱。
+
+## 字段
+
+<Params>
+<Param name="uid" type="string">
+用户在官网上的账号 ID，也是其在已登记应用的 Firebase 项目中的用户 `uid`。
+</Param>
+<Param name="displayName" type="string">
+显示名称。
+</Param>
+<Param name="photoURL" type="string">
+头像图片的 URL，没有则为 `""`。
+</Param>
+<Param name="group" type="string">
+用户在官网上的组别：`president`、`core-staff`、`staff` 或 `user`。
+</Param>
+<Param name="title" type="string">
+团队页面上的英文头衔，或 `""`。
+</Param>
+<Param name="titleCn" type="string">
+团队页面上的中文头衔，或 `""`。
+</Param>
+</Params>
+
+## 示例
+
+<ObjectExample name="person" />

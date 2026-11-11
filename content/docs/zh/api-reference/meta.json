@@ -5,6 +5,11 @@
   "pages": [
     "index",
     "errors",
+    "---人员---",
+    "get-me",
+    "list-team",
+    "list-event-staff",
+    "person",
     "---活动---",
     "list-events",
     "get-event",

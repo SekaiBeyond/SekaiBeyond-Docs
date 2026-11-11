@@ -1,0 +1,36 @@
+---
+title: 列出团队名单
+description: 社长、核心成员和工作人员，按最高组别优先、再按名称排序。
+full: true
+---
+
+<Endpoint method="GET" path="/v1/team" scope="team:read" />
+
+<ApiPage operation="listTeam">
+
+返回所有 `president`、`core-staff` 和 `staff` 成员，与管理后台列出的方式一致。只有在本站是工作人员及以上的登录用户才能调用。
+
+## 参数
+
+无。
+
+## 返回
+
+**200**，返回一个包含团队成员的对象：
+
+<Params>
+<Param name="people" type="Person[]">
+所有 `president`、`core-staff` 和 `staff` 成员，先按最高组别排序，再按 `displayName` 排序。所有字段见 [Person 对象](./person.mdx)。
+</Param>
+</Params>
+
+## 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|---|---|---|
+| 403 | `sign-in-required` | 使用了服务器 API 密钥（而非用户的登录凭证）发起调用。 |
+| 403 | `not-allowed` | 当前登录用户不是工作人员（`staff`、`core-staff` 或 `president`）。 |
+
+以及所有端点都可能返回的错误，见[错误](./errors.mdx)。
+
+</ApiPage>

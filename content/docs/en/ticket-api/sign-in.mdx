@@ -1,0 +1,102 @@
+---
+title: Sign in with Sekai Beyond
+description: Let people sign in to your Firebase app with their Sekai Beyond account, and call the API on their behalf.
+---
+
+Registered apps such as SKBY Manager can sign people in with their Sekai Beyond accounts. Instead of sharing a database, `issueAppToken` mints a Firebase custom token **for the app's own Firebase project**, signed through IAM as the app's service account, so no service-account key file is ever stored.
+
+- **The main site** tells the app who someone is, and decides what of the *site's* data that person can read through the app.
+- **The app** keeps its own data, and decides who may do what in the app, in its own database and rules.
+
+Any signed-in account here may sign in to any registered app that has user sign-in enabled.
+
+<Steps>
+<Step>
+
+### Register the app
+
+In **Tools > Apps**, register the app with **People sign in to it with their account here** ticked:
+
+- **Redirect URIs**: 1–10 URLs where sign-in may hand people back to (`https://`, or `http://localhost` / `http://127.0.0.1` for local testing, with no `#fragment`). Pages on those origins may also call `/api/v1` from a browser (CORS).
+- **What it may read for the person signed in** (optional): `events:read`, `team:read`, `event-staff:read`. Every app gets the person's name, photo and group via [`GET /v1/me`](../api-reference/get-me.mdx) without any scope.
+- **Firebase project ID** and **Service account**: the app's own Firebase project ID (such as `skby-manager`) and the service account its custom tokens are signed as (usually its `firebase-adminsdk` service account).
+
+</Step>
+<Step>
+
+### Grant IAM roles on the app's project
+
+Open **Setup for its owner** on the app's card in **Tools > Apps** and run the two `gcloud` commands shown there once on the app's project:
+
+1. `roles/iam.serviceAccountTokenCreator` on the app's service account, so our functions can sign custom tokens for the app's project.
+2. `roles/firebaseauth.admin` on the app's project, so signing out everywhere, changing a password, undoing an email change, or deleting an account here also revokes or deletes that user in the app's project.
+
+</Step>
+<Step>
+
+### Send the person to `/authorize`
+
+Redirect the browser to:
+
+```
+https://sekaibeyond.com/authorize?app=<appId>&state=<state>&redirect_uri=<redirectUri>
+```
+
+- `app`: the app's ID.
+- `state`: 16–128 characters of `A-Z`, `a-z`, `0-9`, `_` and `-`, generated randomly for this sign-in and kept in `sessionStorage` so you can check it when they return.
+- `redirect_uri`: optional when you want the first redirect URI registered on the app; when given, it must match one of the app's registered redirect URIs.
+
+The page shows the app's name, its owner (if set), and what it will see: their name, photo and role here, plus one line per scope. It never shares their email or password. Nothing happens until they click **Continue**.
+
+</Step>
+<Step>
+
+### Finish signing in and call `/api/v1`
+
+When they click **Continue**, `/authorize` redirects to:
+
+```
+<redirect_uri>#token=<customToken>&state=<state>
+```
+
+The token is in the URL fragment (`#…`), so it never reaches a server in a request URL or `Referer` header. In your app:
+
+1. Read `token` and `state` from `window.location.hash`, clear the hash with `history.replaceState`, and verify that `state` matches what you sent.
+2. Call `signInWithCustomToken(auth, token)` on your app's Firebase Auth instance. The user now has the same `uid` in your project as on `sekaibeyond.com`.
+3. To call `/api/v1` from the browser (on a registered origin, at `https://sekaibeyond.com/api/v1`) or from your server (`https://sekaibeyond.com/api/v1` or `https://api.sekaibeyond.com/v1`), pass the user's Firebase ID token (`await user.getIdToken()`) in the `Authorization` header:
+
+```js
+const idToken = await auth.currentUser.getIdToken();
+const res = await fetch('https://sekaibeyond.com/api/v1/me', {
+  headers: { Authorization: `Bearer ${idToken}` },
+});
+const me = await res.json();
+```
+
+</Step>
+</Steps>
+
+## Token claims and live checks
+
+The custom token's claims carry onto every ID token the sign-in renews to:
+
+- `app`: the app's ID (`appId`).
+- `group`: the person's group here when they signed in (`president`, `core-staff`, `staff` or `user`). Read [`GET /v1/me`](../api-reference/get-me.mdx) for their current group and profile.
+- `mintedAt`: when the sign-in was issued, in milliseconds since the epoch.
+
+Every `/api/v1` call re-reads the person's account here:
+
+- **Signing out everywhere, signing out other devices, changing a password, or undoing an email change** immediately causes `/api/v1` to refuse tokens from before that moment with `401 session-ended`, and revokes refresh tokens in your app's Firebase project.
+- **Deleting an account** immediately stops `/api/v1` and deletes the user in your app's Firebase project.
+- **Changing a person's group** does not sign them out; `/v1/me` returns the new group at once.
+- **Changing an app's scopes or removing the app** reaches `/api/v1` within 10 seconds.
+- Each person may make **60 calls a minute** per app.
+
+## Person scopes
+
+| Scope | Lets the app |
+|---|---|
+| *(none)* | Call [`GET /v1/me`](../api-reference/get-me.mdx) for the signed-in person |
+| `events:read` | [List events](../api-reference/list-events.mdx) and [get an event](../api-reference/get-event.mdx) that the person can see on the site |
+| `team:read` | [List the team](../api-reference/list-team.mdx), if the person signed in is staff or above |
+| `event-staff:read` | [List an event's staff](../api-reference/list-event-staff.mdx), if the person signed in is staff or that event's staff |

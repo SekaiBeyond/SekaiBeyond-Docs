@@ -1,0 +1,44 @@
+---
+title: 列出活动工作人员
+description: 某个活动的工作人员名单，仅对本站工作人员及该活动的工作人员开放。
+full: true
+---
+
+<Endpoint method="GET" path="/v1/events/{eventId}/staff" scope="event-staff:read" />
+
+<ApiPage operation="listEventStaff">
+
+返回被指派为某个活动的工作人员的用户列表，无论该活动是否已归档。只有在本站是工作人员（及以上）的用户，或该活动自己的工作人员才能调用。该权限检查在查找活动之前进行，因此其他人无法借此探测哪些活动 ID 存在。
+
+## 路径参数
+
+<Params>
+<Param name="eventId" type="string" required>
+活动 ID，来自[列出活动](./list-events.mdx)。
+</Param>
+</Params>
+
+## 返回
+
+**200**，返回一个包含活动 ID 及其工作人员的对象：
+
+<Params>
+<Param name="eventId" type="string">
+活动 ID。
+</Param>
+<Param name="staff" type="Person[]">
+该活动的工作人员，先按最高组别排序，再按 `displayName` 排序。所有字段见 [Person 对象](./person.mdx)。
+</Param>
+</Params>
+
+## 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|---|---|---|
+| 403 | `sign-in-required` | 使用了服务器 API 密钥（而非用户的登录凭证）发起调用。 |
+| 403 | `not-allowed` | 当前登录用户既不是本站工作人员，也不是该活动的工作人员。 |
+| 404 | `event-not-found` | 没有这个 ID 的活动。 |
+
+以及所有端点都可能返回的错误，见[错误](./errors.mdx)。
+
+</ApiPage>

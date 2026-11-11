@@ -19,7 +19,7 @@ There's no list of a buyer's orders. The seller's app already knows which orders
 The event the order is for.
 </Param>
 <Param name="orderId" type="string" required>
-Your order number, as sent to [Create an order](./create-order.mdx) with a key of the same seller ID.
+Your order number, as sent to [Create an order](./create-order.mdx) with a key of the same app.
 </Param>
 </Params>
 
@@ -31,9 +31,10 @@ Your order number, as sent to [Create an order](./create-order.mdx) with a key o
 
 | Status | Code | When |
 |---|---|---|
+| 403 | `api-key-required` | Called with a person's sign-in instead of a server API key. |
 | 403 | `event-not-allowed` | The key is held to other events. |
 | 404 | `event-not-found` | No event has this ID. |
-| 404 | `order-not-found` | The event has no order placed through the API with this number by your seller ID. |
+| 404 | `order-not-found` | The event has no order placed through the API with this number by your app. |
 
 Plus the ones every endpoint can return: see [Errors](./errors.mdx).
 

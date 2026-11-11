@@ -37,10 +37,10 @@ description: 官网的两类活动（未归档和已归档）及其字段。
 中文描述。为 `""` 时，官网显示 `description`。
 </Param>
 <Param name="location" type="string">
-英文地点，例如房间或楼名。
+英文地点，例如房间或楼名。设置 `venueId` 时，为官网显示的场地名称与所选房间（例如 `"Husky Union Building · 214, 250"`）。
 </Param>
 <Param name="locationCn" type="string">
-中文地点。
+中文地点。设置 `venueId` 时，使用场地和房间的中文名，缺失的部分逐项回退为英文。
 </Param>
 <Param name="venueId" type="string">
 活动场地在官网地图和停车指南中的 ID，没有则为 `""`。场地目前还不在 API 中。
@@ -53,6 +53,9 @@ description: 官网的两类活动（未归档和已归档）及其字段。
 </Param>
 <Param name="deleteAt" type="string | null">
 如果工作人员申请删除该活动，则为它的预定删除时间。删除会等待 48 小时，期间可以取消。否则为 `null`。
+</Param>
+<Param name="con" type="{ year: number } | null">
+如果是当年的彼世界漫展（Sekai Beyond Con），则为包含年份的对象 `{ year }`；其他任何活动均为 `null`。归档后保留。
 </Param>
 </Params>
 

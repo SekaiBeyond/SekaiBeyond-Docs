@@ -1,0 +1,36 @@
+---
+title: List the team
+description: President, core-staff and staff, highest group first, then by name.
+full: true
+---
+
+<Endpoint method="GET" path="/v1/team" scope="team:read" />
+
+<ApiPage operation="listTeam">
+
+Returns everyone in `president`, `core-staff` and `staff`, as the admin panel lists them. Only a person who is staff or above here may call it.
+
+## Parameters
+
+None.
+
+## Returns
+
+**200** with an object holding the team:
+
+<Params>
+<Param name="people" type="Person[]">
+Everyone in `president`, `core-staff` and `staff`, sorted by highest group first, then by `displayName`. Every field is listed in [The Person object](./person.mdx).
+</Param>
+</Params>
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 403 | `sign-in-required` | Called with a server API key instead of a person's sign-in. |
+| 403 | `not-allowed` | The person signed in isn't staff (`staff`, `core-staff` or `president`). |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

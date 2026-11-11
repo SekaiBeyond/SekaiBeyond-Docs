@@ -37,10 +37,10 @@ English description, plain text. It may contain line breaks.
 Chinese description. When it's `""`, the site shows `description` instead.
 </Param>
 <Param name="location" type="string">
-English location, such as a room or building.
+English location, such as a room or building. When `venueId` is set, this is the venue's name and selected rooms as shown on the site (for example, `"Husky Union Building · 214, 250"`).
 </Param>
 <Param name="locationCn" type="string">
-Chinese location.
+Chinese location. When `venueId` is set, uses the venue's and rooms' Chinese names, falling back to English piece by piece.
 </Param>
 <Param name="venueId" type="string">
 The ID of the event's venue on the site's map and parking guide, or `""` for none. Venues aren't in the API yet.
@@ -53,6 +53,9 @@ Whether the event has tickets. Free events don't.
 </Param>
 <Param name="deleteAt" type="string | null">
 When the event is due to be deleted, if staff have asked to delete it. Deletion waits 48 hours and can be cancelled. `null` otherwise.
+</Param>
+<Param name="con" type="{ year: number } | null">
+That year's Sekai Beyond Con, with its `year`, or `null` for any other event. Kept when the event is archived.
 </Param>
 </Params>
 

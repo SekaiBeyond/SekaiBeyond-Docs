@@ -22,10 +22,14 @@ description: 所有错误的统一格式，以及任何端点都可能返回的�
 | 401 | `missing-api-key` | 没有 `Authorization: Bearer` 请求头。 |
 | 401 | `invalid-api-key` | 密钥不是我们签发的，或已被吊销。 |
 | 401 | `api-key-expired` | 密钥已过期。 |
-| 403 | `missing-scope` | 密钥缺少该端点所需的权限范围。 |
+| 401 | `invalid-token` | ID 令牌不是来自某个已登记应用的有效登录，或该应用已被移除、已关闭用户登录。 |
+| 401 | `session-ended` | 该用户在此次登录签发后已退出所有设备（或账号已被删除）。 |
+| 403 | `api-key-required` | 用用户的登录凭证（而非 API 密钥）调用了订单端点。 |
+| 403 | `sign-in-required` | 用 API 密钥（而非用户的登录凭证）调用了人员端点（`/v1/me`、`/v1/team`、`/v1/events/{eventId}/staff`）。 |
+| 403 | `missing-scope` | 密钥或应用缺少该端点所需的权限范围。 |
 | 404 | `not-found` | 没有这个端点。 |
 | 405 | `method-not-allowed` | 请求方法错误。`Allow` 响应头给出正确的方法。 |
-| 429 | `rate-limited` | 每分钟调用超过 120 次。`Retry-After` 给出需要等待的秒数。 |
+| 429 | `rate-limited` | 密钥每分钟调用超过 120 次，或同一用户在单个应用中每分钟调用超过 60 次。`Retry-After` 给出需要等待的秒数。 |
 | 500 | `internal` | 我们这边出了问题。请重试。 |
 
 ## 来自中转

@@ -39,8 +39,8 @@ function MethodBadge({ method }: { method: Method }) {
     );
 }
 
-/** The method, path and scope at the top of an endpoint's page. */
-export function Endpoint({ method, path, scope }: { method: Method; path: string; scope: string }) {
+/** The method, path and optional scope at the top of an endpoint's page. */
+export function Endpoint({ method, path, scope }: { method: Method; path: string; scope?: string }) {
     // Keyed by where each part starts in the path, which never changes.
     let offset = 0;
     const parts = path.split(/(\{[^}]+\})/).map((text) => {
@@ -64,9 +64,11 @@ export function Endpoint({ method, path, scope }: { method: Method; path: string
                         ),
                 )}
             </code>
-            <span className="ms-auto text-xs text-fd-muted-foreground">
-        <ApiLabel name="scope"/> <code className="rounded bg-fd-muted px-1 py-0.5 font-mono">{scope}</code>
-      </span>
+            {scope && (
+                <span className="ms-auto text-xs text-fd-muted-foreground">
+                    <ApiLabel name="scope"/> <code className="rounded bg-fd-muted px-1 py-0.5 font-mono">{scope}</code>
+                </span>
+            )}
         </div>
     );
 }

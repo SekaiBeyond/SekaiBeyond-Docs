@@ -1,0 +1,44 @@
+---
+title: List an event's staff
+description: An event's staff, to staff here and to that event's own staff.
+full: true
+---
+
+<Endpoint method="GET" path="/v1/events/{eventId}/staff" scope="event-staff:read" />
+
+<ApiPage operation="listEventStaff">
+
+Returns the people assigned as event staff for an event, archived or not. Only a person who is staff (or above) here, or event staff for that event, may call it. That check runs before the event is looked up, so no one else can tell which event IDs exist.
+
+## Path parameters
+
+<Params>
+<Param name="eventId" type="string" required>
+The event's ID, from [List events](./list-events.mdx).
+</Param>
+</Params>
+
+## Returns
+
+**200** with an object holding the event's ID and its staff:
+
+<Params>
+<Param name="eventId" type="string">
+The event's ID.
+</Param>
+<Param name="staff" type="Person[]">
+The event's staff, sorted by highest group first, then by `displayName`. Every field is listed in [The Person object](./person.mdx).
+</Param>
+</Params>
+
+## Errors
+
+| Status | Code | When |
+|---|---|---|
+| 403 | `sign-in-required` | Called with a server API key instead of a person's sign-in. |
+| 403 | `not-allowed` | The person signed in isn't staff here, and isn't event staff for this event. |
+| 404 | `event-not-found` | No event has this ID. |
+
+Plus the ones every endpoint can return: see [Errors](./errors.mdx).
+
+</ApiPage>

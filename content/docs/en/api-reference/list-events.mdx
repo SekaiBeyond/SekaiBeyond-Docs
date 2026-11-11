@@ -8,7 +8,10 @@ full: true
 
 <ApiPage operation="listEvents">
 
-Returns every event: unarchived and archived, free and paid, published or not. Filter on the [Event](./event.mdx) flags (`archived`, `published`, `paid`, `onSale`, `deleteAt`) for what you need. A key held to certain events gets only those.
+Returns the events the caller may see:
+
+- **With a server API key:** every event (unarchived and archived, free and paid, published or not), or the events the key is held to. Filter on the [Event](./event.mdx) flags (`archived`, `published`, `paid`, `onSale`, `deleteAt`) for what you need.
+- **With a person's sign-in:** the events that person can see on the site—every archived event, plus unarchived events that are `published: true`, or unpublished ones if the person is staff or that event's own staff.
 
 ## Parameters
 

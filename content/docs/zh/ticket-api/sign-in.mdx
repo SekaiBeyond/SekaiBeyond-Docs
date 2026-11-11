@@ -1,0 +1,102 @@
+---
+title: 使用彼世界账号登录
+description: 让用户使用彼世界账号登录你的 Firebase 应用，并代表他们调用 API。
+---
+
+SKBY Manager 等已登记的应用可以让用户使用自己的彼世界账号登录。应用无需与主站共用数据库：`issueAppToken` 会通过 IAM 以该应用自己的服务账号身份，**为该应用自己的 Firebase 项目**签发自定义令牌（Custom Token），因此无需保存任何服务账号密钥文件。
+
+- **主站**告诉应用某人是谁，并决定该用户能通过应用读取*主站*的哪些数据。
+- **应用**保存自己的数据，并在自己的数据库与安全规则中决定谁能在应用内做什么。
+
+任何已登录的本站账号都可以登录任何开启了用户登录的已登记应用。
+
+<Steps>
+<Step>
+
+### 登记应用
+
+在管理后台的「工具 > 应用」中登记应用，并保持勾选「用户用本站账号登录此应用」：
+
+- **回调地址**（`redirectUris`）：1–10 个登录后可返回的地址（须为 `https://`，本地测试可用 `http://localhost` 或 `http://127.0.0.1`，且不含 `#fragment`）。这些站点上的页面也可以在浏览器中直接调用 `/api/v1`（CORS）。
+- **可为登录者读取的内容**（可选）：`events:read`、`team:read`、`event-staff:read`。无需任何权限范围，所有应用都能通过 [`GET /v1/me`](../api-reference/get-me.mdx) 获取登录者的名称、头像和组别。
+- **Firebase 项目 ID** 与 **服务账号**：该应用自己的 Firebase 项目 ID（例如 `skby-manager`）以及用于签名登录凭证的服务账号（通常是其 `firebase-adminsdk` 服务账号）。
+
+</Step>
+<Step>
+
+### 在应用的项目上授予 IAM 角色
+
+展开「工具 > 应用」中该应用卡片下的「负责人设置说明」，在应用的 GCP/Firebase 项目中执行一次上面显示的两条 `gcloud` 命令：
+
+1. 在应用的服务账号上授予 `roles/iam.serviceAccountTokenCreator`，以便我们的函数为该应用的项目签名自定义令牌。
+2. 在应用的项目上授予 `roles/firebaseauth.admin`，以便用户在本站退出所有设备、修改密码、撤销邮箱变更或注销账号时，也能同步吊销或删除该应用项目中的对应用户。
+
+</Step>
+<Step>
+
+### 将用户引导至 `/authorize`
+
+将浏览器跳转至：
+
+```
+https://sekaibeyond.com/authorize?app=<appId>&state=<state>&redirect_uri=<redirectUri>
+```
+
+- `app`：应用 ID。
+- `state`：16–128 个字符（仅限 `A-Z`、`a-z`、`0-9`、`_` 和 `-`），每次发起登录时随机生成并保存在 `sessionStorage` 中，以便返回时核对。
+- `redirect_uri`：使用应用的第一个已登记回调地址时可省略；传入时必须与应用的已登记回调地址之一完全一致。
+
+页面会显示应用名称、负责人（如有）以及应用将能看到的内容：用户在本站的名称、头像和角色，外加每项权限范围各一行说明。它绝不会共享用户的邮箱或密码。在用户点击「继续」之前不会发生任何操作。
+
+</Step>
+<Step>
+
+### 完成登录并调用 `/api/v1`
+
+用户点击「继续」后，`/authorize` 会跳转至：
+
+```
+<redirect_uri>#token=<customToken>&state=<state>
+```
+
+令牌放在 URL 片段（`#…`）中，因此绝不会通过请求地址或 `Referer` 头发送到服务器。在你的应用中：
+
+1. 从 `window.location.hash` 读取 `token` 和 `state`，用 `history.replaceState` 清除地址栏中的 `#…`，并核对 `state` 与发出时一致。
+2. 在你的应用的 Firebase Auth 实例上调用 `signInWithCustomToken(auth, token)`。此时该用户在你的项目中的 `uid` 与在 `sekaibeyond.com` 上的完全一致。
+3. 从浏览器（在已登记的站点上，请求 `https://sekaibeyond.com/api/v1`）或你的服务器（`https://sekaibeyond.com/api/v1` 或 `https://api.sekaibeyond.com/v1`）调用 `/api/v1` 时，将该用户的 Firebase ID 令牌（`await user.getIdToken()`）放入 `Authorization` 请求头：
+
+```js
+const idToken = await auth.currentUser.getIdToken();
+const res = await fetch('https://sekaibeyond.com/api/v1/me', {
+  headers: { Authorization: `Bearer ${idToken}` },
+});
+const me = await res.json();
+```
+
+</Step>
+</Steps>
+
+## 令牌声明与实时检查
+
+自定义令牌上的声明会保留在该次登录续期出的每一个 ID 令牌上：
+
+- `app`：应用 ID（`appId`）。
+- `group`：用户登录时在本站的组别（`president`、`core-staff`、`staff` 或 `user`）。要获取其当前最新的组别与资料，请调用 [`GET /v1/me`](../api-reference/get-me.mdx)。
+- `mintedAt`：签发该次登录时的毫秒时间戳。
+
+每次 `/api/v1` 调用都会实时读取用户在本站的账号：
+
+- **退出所有设备、退出其他设备、修改密码或撤销邮箱变更**后，`/api/v1` 会立即以 `401 session-ended` 拒绝该时间点之前的登录凭证，并吊销用户在你的应用项目中的刷新令牌。
+- **注销账号**会立即使 `/api/v1` 停止响应，并从你的应用项目中删除该用户。
+- **更改用户的组别**不会将其退出登录；`/v1/me` 会立即返回新的组别。
+- **修改应用的权限范围或移除应用**会在 10 秒内对 `/api/v1` 生效。
+- 每位用户在每个应用中每分钟最多调用 **60 次**。
+
+## 人员权限范围
+
+| 权限范围 | 允许应用 |
+|---|---|
+| *（无）* | 为当前登录用户调用 [`GET /v1/me`](../api-reference/get-me.mdx) |
+| `events:read` | [列出活动](../api-reference/list-events.mdx)和[获取活动](../api-reference/get-event.mdx)（仅限该用户在官网能看到的活动） |
+| `team:read` | [列出团队名单](../api-reference/list-team.mdx)（仅限登录者为工作人员及以上时） |
+| `event-staff:read` | [列出活动工作人员](../api-reference/list-event-staff.mdx)（仅限登录者为工作人员或该活动的工作人员时） |

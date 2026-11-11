@@ -1,11 +1,12 @@
 {
   "title": "Ticket API",
-  "description": "Selling tickets from another app",
+  "description": "Apps, sign-in and selling tickets",
   "root": true,
   "pages": [
     "index",
     "getting-started",
     "keys",
+    "sign-in",
     "mainland-china",
     "agents",
     "admin-panel"

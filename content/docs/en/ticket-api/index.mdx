@@ -1,24 +1,30 @@
 ---
 title: Ticket API
-description: Read our events and sell tickets for the paid ones from another app's server.
+description: Sign people in to registered apps, read our events and team, and sell tickets for paid events from another app's server.
 ---
 
-Lets another app's server read our events and sell tickets for the paid ones. Tickets sold this way go on the event's attendee list and scan at the door like any other. The buyer holds them in that app rather than in an account on the site, so they don't show in anyone's **My Tickets** there. An order can also ask us to email the buyer their tickets.
+Two kinds of caller use the API, both under apps registered by core-staff in **Tools > Apps**:
 
-<Callout type="warn" title="It's an admin-level API, not one for ordinary users.">
-  A key sees events as core-staff do in the admin panel, unpublished ones included. So keys go only to our own systems and to partners' servers we trust.
+- **A registered app's server, with an API key** ([Apps and API keys](./keys.mdx)): reads every event and sells tickets for the paid ones. Tickets sold this way go on the event's attendee list and scan at the door like any other. The buyer holds them in that app rather than in an account on the site, so they don't show in anyone's **My Tickets** there. An order can also ask us to email the buyer their tickets.
+- **A person signed in to a registered app, with that sign-in's ID token** ([Sign in with Sekai Beyond](./sign-in.mdx)): calls from the app's pages (CORS) or its server to read who they are here, the events they can see on the site, the team, and an event's staff, within the scopes the app was given.
+
+<Callout type="warn" title="Each side decides who can access the data it holds.">
+  A server API key sees events as core-staff do in the admin panel, unpublished ones included, so keys go only to our own systems and to partners' servers we trust. A person's sign-in sees only what that person can see on the site, and no more than the app's scopes allow; what they can do inside the app is up to the app.
 </Callout>
 
-The API returns everything the site itself reads and leaves the filtering to the caller. Its events are both kinds the site has, unarchived and archived, each with the site's own fields.
+Its events are both kinds the site has, unarchived and archived, each with the site's own fields.
 
 ## What it does
 
-| Endpoint | Scope | What it does |
-|---|---|---|
-| [`GET /v1/events`](../api-reference/list-events.mdx) | `events:read` | List every event, archived ones included |
-| [`GET /v1/events/{eventId}`](../api-reference/get-event.mdx) | `events:read` | Get one event, such as to check it just before taking payment |
-| [`POST /v1/events/{eventId}/orders`](../api-reference/create-order.mdx) | `tickets:write` | Issue an order's tickets once it's paid |
-| [`GET /v1/events/{eventId}/orders/{orderId}`](../api-reference/get-order.mdx) | `tickets:read` | Get an order, with whether each ticket has been used |
+| Endpoint | Caller | Scope | What it does |
+|---|---|---|---|
+| [`GET /v1/me`](../api-reference/get-me.mdx) | Person | — | Get the signed-in person as they are now |
+| [`GET /v1/team`](../api-reference/list-team.mdx) | Person (staff) | `team:read` | List president, core-staff and staff |
+| [`GET /v1/events`](../api-reference/list-events.mdx) | Key or person | `events:read` | List events (all for a key, or what the person can see on the site) |
+| [`GET /v1/events/{eventId}`](../api-reference/get-event.mdx) | Key or person | `events:read` | Get one event, such as to check it just before taking payment |
+| [`GET /v1/events/{eventId}/staff`](../api-reference/list-event-staff.mdx) | Person (staff or event staff) | `event-staff:read` | List an event's staff |
+| [`POST /v1/events/{eventId}/orders`](../api-reference/create-order.mdx) | Key | `tickets:write` | Issue an order's tickets once it's paid |
+| [`GET /v1/events/{eventId}/orders/{orderId}`](../api-reference/get-order.mdx) | Key | `tickets:read` | Get an order, with whether each ticket has been used |
 
 Prices stay in the seller's app, since events don't store them.
 
@@ -26,10 +32,13 @@ Prices stay in the seller's app, since events don't store them.
 
 <Cards>
   <Card title="Getting started" href="./getting-started.mdx">
-    From a new key to a first order, step by step.
+    From registering an app and getting a key to a first order, step by step.
   </Card>
-  <Card title="API keys" href="./keys.mdx">
-    Scopes, seller IDs, expiry and the rate limit.
+  <Card title="Apps and API keys" href="./keys.mdx">
+    Registering apps, app IDs, key scopes, expiry and the rate limit.
+  </Card>
+  <Card title="Sign in with Sekai Beyond" href="./sign-in.mdx">
+    Sign people in to your app at `/authorize` and call the person endpoints.
   </Card>
   <Card title="Calling from mainland China" href="./mainland-china.mdx">
     The relay at `api.sekaibeyond.com`, and how well it's reached.
@@ -39,4 +48,4 @@ Prices stay in the seller's app, since events don't store them.
   </Card>
 </Cards>
 
-The code is [`functions/src/functions/api.ts`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/functions/src/functions/api.ts).
+The code is [`functions/src/functions/api.ts`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/functions/src/functions/api.ts) and [`functions/src/functions/apps.ts`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/functions/src/functions/apps.ts).

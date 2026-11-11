@@ -14,14 +14,16 @@ Both take the same paths and answer the same way. See [Calling from mainland Chi
 
 ## Authentication
 
-Every request carries the key:
+Every request carries either a server API key or the Firebase ID token of a person signed in to a registered app:
 
 ```
-Authorization: Bearer sbk_…
+Authorization: Bearer sbk_…         (server API key)
+Authorization: Bearer <idToken>     (signed-in person)
 Content-Type: application/json      (POST only)
 ```
 
-Keys are made by core-staff in the admin panel. See [API keys](../ticket-api/keys.mdx).
+- **Server API keys** (`sbk_…`) are created by core-staff under a registered app in **Tools > Apps** (see [Apps and API keys](../ticket-api/keys.mdx)). They are server-to-server only and never carry CORS headers.
+- **Person ID tokens** come from signing a person in to a registered app at `/authorize` (see [Sign in with Sekai Beyond](../ticket-api/sign-in.mdx)). Pages on the origins of the app's redirect URIs may call `https://sekaibeyond.com/api` directly from a browser (CORS), or the app's server may call on their behalf.
 
 ## Conventions
 
@@ -32,15 +34,19 @@ Keys are made by core-staff in the admin panel. See [API keys](../ticket-api/key
 
 ## Endpoints
 
-| Endpoint | Scope | What it does |
-|---|---|---|
-| [`GET /v1/events`](./list-events.mdx) | `events:read` | List every event, archived ones included |
-| [`GET /v1/events/{eventId}`](./get-event.mdx) | `events:read` | Get one event, such as to check it just before taking payment |
-| [`POST /v1/events/{eventId}/orders`](./create-order.mdx) | `tickets:write` | Issue an order's tickets once it's paid |
-| [`GET /v1/events/{eventId}/orders/{orderId}`](./get-order.mdx) | `tickets:read` | Get an order, with whether each ticket has been used |
+| Endpoint | Caller | Scope | What it does |
+|---|---|---|---|
+| [`GET /v1/me`](./get-me.mdx) | Person | — | Get the signed-in person as they are now |
+| [`GET /v1/team`](./list-team.mdx) | Person (staff) | `team:read` | List president, core-staff and staff |
+| [`GET /v1/events`](./list-events.mdx) | Key or person | `events:read` | List events (all for a key, or what the person can see on the site) |
+| [`GET /v1/events/{eventId}`](./get-event.mdx) | Key or person | `events:read` | Get one event, such as to check it just before taking payment |
+| [`GET /v1/events/{eventId}/staff`](./list-event-staff.mdx) | Person (staff or event staff) | `event-staff:read` | List an event's staff |
+| [`POST /v1/events/{eventId}/orders`](./create-order.mdx) | Key | `tickets:write` | Issue an order's tickets once it's paid |
+| [`GET /v1/events/{eventId}/orders/{orderId}`](./get-order.mdx) | Key | `tickets:read` | Get an order, with whether each ticket has been used |
 
 What they return:
 
+- [The Person object](./person.mdx): a person's `uid`, name, photo, group and titles (never their email)
 - [The Event object](./event.mdx): both kinds of event the site has, unarchived and archived, and their fields
 - [The Order object](./order.mdx): an order and its tickets
 
