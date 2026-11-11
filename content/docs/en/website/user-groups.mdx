@@ -1,22 +1,26 @@
 ---
 title: User Groups
-description: Roles, admin access, the first president, and membership.
+description: Roles, admin access, event staff, the first president, and membership.
 ---
 
 The site uses a role-based group system instead of a simple admin flag. `group` is a pure role ladder — users are assigned one of the following (lowest to highest):
 
-| Group        | Description                                          |
-|--------------|------------------------------------------------------|
-| `user`       | Default for newly signed-in users                    |
-| `staff`      | Staff members                                        |
-| `core-staff` | Core staff — can access the admin panel              |
-| `president`  | Club president — can access the admin panel          |
+| Group        | Description                                                   |
+|--------------|---------------------------------------------------------------|
+| `user`       | Default for newly signed-in users                             |
+| `staff`      | Staff members — can open the admin panel, read-only           |
+| `core-staff` | Core staff — can make changes in the admin panel              |
+| `president`  | Club president — can make changes, and manage core-staff too  |
 
-Only `core-staff` and `president` can access the admin panel, where they assign groups below their own level to other users.
+`staff` and above can open the admin panel. Staff see every tab read-only, apart from working an event's door (scanning tickets and adding walk-ins), and don't see the **Apps** tool. Core-staff and the president make the changes, including assigning groups: core-staff can move people between `user` and `staff`, and the president can assign any group to anyone but themselves.
+
+## Event staff
+
+**Event staff** is separate from `group`. It is a per-event tag, `users/{uid}.eventStaffEvents`, which anyone can hold whatever their group. Event staff for an upcoming event can open the admin panel for that event alone, to work its door and read its attendee list. Core-staff and above add and remove them on the event in the admin panel, or generate a staff code that makes whoever redeems it staff for the event. The tag is kept when the event is archived, but the admin panel access ends then.
 
 ## Bootstrapping the first president
 
-A new deployment has no one who can open the admin panel, so the first `president` is set by hand:
+A new deployment has no one who can assign groups, so the first `president` is set by hand:
 
 1. Sign in to the site so your user document is created in Firestore
 2. In Firebase Console > Firestore > `users` collection, find your document

@@ -8,7 +8,7 @@ Registered apps such as SKBY Manager can sign people in with their Sekai Beyond 
 - **The main site** tells the app who someone is, and decides what of the *site's* data that person can read through the app.
 - **The app** keeps its own data, and decides who may do what in the app, in its own database and rules.
 
-Any signed-in account here may sign in to any registered app that has user sign-in enabled.
+Any signed-in account here may sign in to any registered app that has user sign-in enabled, so the app decides who may use it: see [Deciding who may use your app](#deciding-who-may-use-your-app).
 
 <Steps>
 <Step>
@@ -31,6 +31,8 @@ Open **Setup for its owner** on the app's card in **Tools > Apps** and run the t
 1. `roles/iam.serviceAccountTokenCreator` on the app's service account, so our functions can sign custom tokens for the app's project.
 2. `roles/firebaseauth.admin` on the app's project, so signing out everywhere, changing a password, undoing an email change, or deleting an account here also revokes or deletes that user in the app's project.
 
+Sign-in needs the first: until it's granted, **Continue** on `/authorize` fails. Without the second, sign-in works, but the app's own project is never told when someone's sign-ins end here.
+
 </Step>
 <Step>
 
@@ -46,7 +48,7 @@ https://sekaibeyond.com/authorize?app=<appId>&state=<state>&redirect_uri=<redire
 - `state`: 16–128 characters of `A-Z`, `a-z`, `0-9`, `_` and `-`, generated randomly for this sign-in and kept in `sessionStorage` so you can check it when they return.
 - `redirect_uri`: optional when you want the first redirect URI registered on the app; when given, it must match one of the app's registered redirect URIs.
 
-The page shows the app's name, its owner (if set), and what it will see: their name, photo and role here, plus one line per scope. It never shares their email or password. Nothing happens until they click **Continue**.
+Someone who isn't signed in here yet is asked to sign in first. The page then shows the app's name, its owner (if set), and what it will see: their name, photo and role here, plus one line per scope. It never shares their email or password. Nothing happens until they click **Continue**.
 
 </Step>
 <Step>
@@ -86,11 +88,33 @@ The custom token's claims carry onto every ID token the sign-in renews to:
 
 Every `/api/v1` call re-reads the person's account here:
 
-- **Signing out everywhere, signing out other devices, changing a password, or undoing an email change** immediately causes `/api/v1` to refuse tokens from before that moment with `401 session-ended`, and revokes refresh tokens in your app's Firebase project.
-- **Deleting an account** immediately stops `/api/v1` and deletes the user in your app's Firebase project.
+- **Signing out everywhere, signing out other devices, setting a new password (changed or reset), or undoing an email change** immediately causes `/api/v1` to refuse tokens from before that moment with `401 session-ended`. It also revokes the person's refresh tokens in your app's Firebase project, so their sign-in there ends once its current ID token expires, within the hour.
+- **Deleting an account** takes effect when the account is removed, at least 48 hours after deletion is requested, unless that's cancelled. From then `/api/v1` answers `401 session-ended`, and the user is deleted from your app's Firebase project.
 - **Changing a person's group** does not sign them out; `/v1/me` returns the new group at once.
 - **Changing an app's scopes or removing the app** reaches `/api/v1` within 10 seconds.
 - Each person may make **60 calls a minute** per app.
+
+Revoking and deleting in your app's project need the second IAM role above. `/api/v1` refuses the sign-in either way.
+
+## Deciding who may use your app
+
+Anyone with an account here can sign in to your app. A sign-in says who someone is, not that they may use the app. Decide that in your own project, such as with an access list in your database that your security rules check:
+
+```
+function signedInWithSekaiBeyond() {
+  return request.auth != null
+    && request.auth.token.firebase.sign_in_provider == 'custom'
+    && request.auth.token.app == '<appId>';
+}
+
+match /projects/{projectId} {
+  allow read, write: if signedInWithSekaiBeyond()
+    && exists(/databases/$(database)/documents/projects/$(projectId)/access/$(request.auth.uid));
+}
+```
+
+- **Check `app` as well as the provider,** so only a sign-in issued for your app counts.
+- **Don't rely on the token's `group` alone.** It's the person's group when they signed in, and it stays that way when their group here changes. Rules that check only it keep letting someone in after they've lost that group, until they sign in again. Read [`GET /v1/me`](../api-reference/get-me.mdx) for their group as it is now.
 
 ## Person scopes
 

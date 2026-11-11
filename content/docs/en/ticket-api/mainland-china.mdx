@@ -6,8 +6,9 @@ description: The relay at api.sekaibeyond.com, and how well it's reached.
 The function's own URL is on Google's network, which mainland networks can't reach. A seller's server there calls `api.sekaibeyond.com` instead. That's a Cloudflare Worker, [`cloudflare/api-relay`](https://github.com/SekaiBeyond/SekaiBeyond-Web/tree/main/cloudflare/api-relay), which passes each `/v1/*` request on to `https://sekaibeyond.com/api/v1/*`:
 
 - **Forwarded:** only `Authorization`, `Content-Type`, `Accept`, `User-Agent` and the body.
-- **Returned:** only the response's `Content-Type`, `Allow` and `Retry-After`, plus `Cache-Control: no-store`.
-- **Not cached.** The key, its scopes and its rate limit are all checked by the API. The relay itself only refuses a body over 64 KiB, and a JSON body Google's servers would turn away (see [Errors](../api-reference/errors.mdx)).
+- **Returned:** only the response's `Content-Type`, `Allow` and `Retry-After`, plus `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`.
+- **For servers only.** It passes on no `Origin` and returns no CORS headers, so a page in a browser can't call it. A signed-in person's calls from an app's pages go to `sekaibeyond.com/api`, or through the app's server (see [Sign in with Sekai Beyond](./sign-in.mdx)).
+- **Not cached.** The key or sign-in, its scopes and its rate limit are all checked by the API. The relay itself only refuses a body over 64 KiB, and a JSON body Google's servers would turn away (see [Errors](../api-reference/errors.mdx)).
 - **Not on `*.workers.dev`:** that's blocked in mainland China, so the relay is on its own hostname only.
 
 ## Reachability
@@ -20,7 +21,7 @@ Tested on 2026-10-28 from 25 mainland probes (via [Globalping](https://globalpin
 | The function's own URL | 0/25 | every probe timed out connecting |
 | `sekaibeyond.com` (Firebase Hosting) | 25/25 | about 0.7 s |
 
-Firebase Hosting answered every probe, so `sekaibeyond.com/api/v1/*` may work from the mainland too once its route is deployed. Test it then before relying on it. The relay stays the supported way in.
+Firebase Hosting answered every probe, so `sekaibeyond.com/api/v1/*` may work from the mainland too. That route wasn't part of the test, so test it before relying on it. The relay stays the supported way in.
 
 Cloudflare's plans below Enterprise serve mainland visitors from outside China, so calls can be slow at peak hours. If they're too slow, point `api.sekaibeyond.com` at a server in Hong Kong running the same pass-through instead. Nothing in the API or the seller's app changes.
 

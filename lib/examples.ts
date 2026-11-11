@@ -21,8 +21,9 @@ const president = {
     displayName: 'Aoi',
     photoURL: 'https://firebasestorage.googleapis.com/v0/b/…/o/avatars%2F…',
     group: 'president',
-    title: 'President',
-    titleCn: '社长',
+    // Only staff and core-staff can have a title.
+    title: '',
+    titleCn: '',
 };
 
 const person = {
