@@ -9,7 +9,7 @@ Core-staff and above register apps and manage their server API keys in the admin
 
 Every integration starts with a registered app (`apps/{appId}`):
 
-- **App ID** (`appId`): 1–32 lowercase letters, digits and `-`, such as `wxapp` or `skby-manager`. It's used in sign-in links and to keep the app's ticket orders separate from other apps', so it can't change once registered.
+- **App ID** (`appId`): made by the site when the app is registered, as 16 lowercase hex digits such as `3f9c2a7e5b1d8046`. It's used in sign-in links and to keep the app's ticket orders separate from other apps', so it can't change, while the app's name can. **Copy ID** on the app's card copies it.
 - **Name and owner**: shown on the list and when people sign in to the app. The owner is an optional account on the site.
 - **User sign-in** (optional): redirect URIs, person scopes, Firebase project ID and service account for signing people in at `/authorize` (see [Sign in with Sekai Beyond](./sign-in.mdx)). Leave unticked for a server-only app that only uses API keys.
 - **Removing an app** stops sign-in to it and revokes and deletes all of its API keys in the same transaction.
