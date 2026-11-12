@@ -26,7 +26,7 @@ In **Tools > Apps**, register the app with **People sign in to it with their acc
 
 ### Grant IAM roles on the app's project
 
-Open **Setup for its owner** on the app's card in **Tools > Apps** and run the two `gcloud` commands shown there once on the app's project:
+Open **Setup for its maintainers** on the app's card in **Tools > Apps** and run the two `gcloud` commands shown there once on the app's project:
 
 1. `roles/iam.serviceAccountTokenCreator` on the app's service account, so our functions can sign custom tokens for the app's project.
 2. `roles/firebaseauth.admin` on the app's project, so signing out everywhere, changing a password, undoing an email change, or deleting an account here also revokes or deletes that user in the app's project.
@@ -48,7 +48,7 @@ https://sekaibeyond.com/authorize?app=<appId>&state=<state>&redirect_uri=<redire
 - `state`: 16–128 characters of `A-Z`, `a-z`, `0-9`, `_` and `-`, generated randomly for this sign-in and kept in `sessionStorage` so you can check it when they return.
 - `redirect_uri`: optional when you want the first redirect URI registered on the app; when given, it must match one of the app's registered redirect URIs.
 
-Someone who isn't signed in here yet is asked to sign in first. The page then shows the app's name, its owner (if set), and what it will see: their name, photo and role here, plus one line per scope. It never shares their email or password. Nothing happens until they click **Continue**.
+Someone who isn't signed in here yet is asked to sign in first. The page then shows the app's name, its maintainers (if any), and what it will see: their name, photo and role here, plus one line per scope. It never shares their email or password. Nothing happens until they click **Continue**.
 
 </Step>
 <Step>

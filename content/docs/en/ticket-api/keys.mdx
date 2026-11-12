@@ -10,7 +10,8 @@ Core-staff and above register apps and manage their server API keys in the admin
 Every integration starts with a registered app (`apps/{appId}`):
 
 - **App ID** (`appId`): made by the site when the app is registered, as 16 lowercase hex digits such as `3f9c2a7e5b1d8046`. It's used in sign-in links and to keep the app's ticket orders separate from other apps', so it can't change, while the app's name can. **Copy ID** on the app's card copies it.
-- **Name and owner**: shown on the list and when people sign in to the app. The owner is an optional account on the site.
+- **Name**: shown on the list and when people sign in to the app.
+- **Creator and maintainers**: each app's card shows who registered it (its creator) and who looks after it (its maintainers). Maintainers are accounts on the site, up to five of them, optional, and listed on the sign-in page. The creator is set when the app is registered and needn't be a maintainer.
 - **User sign-in** (optional): redirect URIs, person scopes, Firebase project ID and service account for signing people in at `/authorize` (see [Sign in with Sekai Beyond](./sign-in.mdx)). Leave unticked for a server-only app that only uses API keys.
 - **Removing an app** stops sign-in to it and revokes and deletes all of its API keys in the same transaction.
 

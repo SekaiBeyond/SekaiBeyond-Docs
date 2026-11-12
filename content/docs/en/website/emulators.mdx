@@ -48,7 +48,7 @@ Sign in with either stand-in for what can't reach the emulators. **Continue with
 
 - No email is sent. Resend is never called: each email is logged in the emulators' output (`Emulator, not sent: …`), with its subject and links, and counted as sent. The log also says the emulator couldn't access `RESEND_API_KEY` from Secret Manager, which is expected.
 - App Check is off. The site skips it, and the functions don't enforce it when emulated.
-- Sign-ins to registered apps aren't signed through IAM: the emulators sign every token themselves. So [Sign in with Sekai Beyond](../ticket-api/sign-in.mdx) works without the IAM roles, for an app whose own Firebase client uses this Auth emulator, and the app's **Setup for its owner** lists no `gcloud` commands.
+- Sign-ins to registered apps aren't signed through IAM: the emulators sign every token themselves. So [Sign in with Sekai Beyond](../ticket-api/sign-in.mdx) works without the IAM roles, for an app whose own Firebase client uses this Auth emulator, and the app's **Setup for its maintainers** lists no `gcloud` commands.
 - Scheduled functions don't run, so `scheduledMailDrain` and `uwParkingNightlySync` are skipped. The parking guide has no lot data until an admin runs **Sync now** under **UW Parking Data** in the admin panel.
 - TTL policies don't run, so an account, event or badge whose deletion was requested is never deleted. Deleting its document in the Emulator UI still runs the cleanup trigger.
 - Composite indexes aren't enforced. A query missing from `firestore.indexes.json` works here but fails in production.
