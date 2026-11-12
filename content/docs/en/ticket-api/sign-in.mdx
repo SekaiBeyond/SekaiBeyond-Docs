@@ -84,16 +84,17 @@ The custom token's claims carry onto every ID token the sign-in renews to:
 
 - `app`: the app's ID (`appId`).
 - `group`: the person's group here (`president`, `core-staff`, `staff` or `user`).
-- `eventStaff`: only if the app has `event-staff:read`. The IDs of the unarchived events the person is event staff for, soonest first, or `[]`. A token's claims are capped at 1,000 bytes, so if someone staffs more events than fit (about 35), the furthest-off ones are left out. [`GET /v1/me`](../api-reference/get-me.mdx) lists every one, archived events included.
+- `eventStaff`: only if the app has `event-staff:read`. The IDs of the unarchived events the person is event staff for, or `[]`: those yet to end first, soonest first, then any that have ended but aren't archived yet. A token's claims are capped at 1,000 bytes, so if someone staffs more events than fit (about 35), the ones left out are those that have ended or are furthest off. [`GET /v1/me`](../api-reference/get-me.mdx) lists every one, archived events included.
 - `mintedAt`: when the sign-in was issued, in milliseconds since the epoch.
 
-The claims are as of the sign-in. When the person's `group` or `eventStaff` changes here, they're signed out of your app, so their next sign-in carries the new values: see below.
+The claims are as of the sign-in. When the claims your app's sign-ins carry change, the person is signed out of your app, so their next sign-in carries the new values: see below.
 
 Every `/api/v1` call re-reads the person's account here:
 
 - **Signing out everywhere, signing out other devices, setting a new password (changed or reset), or undoing an email change** immediately causes `/api/v1` to refuse tokens from before that moment with `401 session-ended`. It also revokes the person's refresh tokens in your app's Firebase project, so their sign-in there ends once its current ID token expires, within the hour.
 - **Deleting an account** takes effect when the account is removed, at least 48 hours after deletion is requested, unless that's cancelled. From then `/api/v1` answers `401 session-ended`, and the user is deleted from your app's Firebase project.
-- **Changing a person's group, or making them staff of an unarchived event or removing them** (by an admin, or by their own staff code), revokes their refresh tokens in your app's project. Their sign-in there ends once its current ID token expires, within the hour, and they sign in again with the new claims. `/v1/me` returns the change at once, and `/api/v1` keeps accepting their current sign-in. Changing only their title, or the staff of an archived event, changes no claim and signs no one out. Before an event, when many people are made staff, they may have to sign in again more often.
+- **Changing a person's group** signs them out of every app. **Making them staff of an unarchived event, or removing them** (by an admin, or by their own staff code), signs them out of every app with `event-staff:read`. Either way their refresh tokens in your app's project are revoked: their sign-in there ends once its current ID token expires, within the hour, and they sign in again with the new claims. `/v1/me` returns the change at once, and `/api/v1` keeps accepting their current sign-in. Changing only their title, or the staff of an archived event, changes no claim and signs no one out. Before an event, when many people are made staff, they may have to sign in again more often.
+- **Adding or removing `event-staff:read`** on an app signs everyone who signed in to it with Sekai Beyond out of it, so their next sign-in has or lacks `eventStaff`. Users your app made itself, which have a sign-in provider of their own, are left signed in.
 - **Changing an app's scopes or removing the app** reaches `/api/v1` within 10 seconds.
 - Each person may make **60 calls a minute** per app.
 
@@ -125,9 +126,15 @@ function signedInWithSekaiBeyond() {
     && request.auth.token.app == '<appId>';
 }
 
+// Used within 5 minutes of being issued, as /authorize's sign-ins are. One held back
+// for longer could carry claims from before a change it was never signed out for.
+function usedPromptly() {
+  return request.auth.token.auth_time * 1000 - request.auth.token.mintedAt < 300000;
+}
+
 // Core staff and the president here.
 function isCoreStaff() {
-  return signedInWithSekaiBeyond()
+  return signedInWithSekaiBeyond() && usedPromptly()
     && request.auth.token.group in ['core-staff', 'president'];
 }
 
@@ -135,7 +142,7 @@ function isCoreStaff() {
 // each event's start and end in your own database, such as copied from GET /v1/events.
 function staffsDuring(eventId) {
   let event = get(/databases/$(database)/documents/events/$(eventId)).data;
-  return signedInWithSekaiBeyond()
+  return signedInWithSekaiBeyond() && usedPromptly()
     && eventId in request.auth.token.get('eventStaff', [])
     && request.time >= event.startAt
     && request.time < event.endAt;
@@ -147,6 +154,7 @@ match /events/{eventId}/checklists/{checklistId} {
 ```
 
 - **Check `app` as well as the provider,** so only a sign-in issued for your app counts.
+- **Check that the sign-in was used promptly** (`usedPromptly`) wherever you check `group` or `eventStaff`. A sign-in token works for an hour once issued, so one issued before a change and used after it would start a sign-in with the old claims that no sign-out reaches.
 - **`group` and `eventStaff` can be up to an hour out of date.** A change signs the person out of your app, but their current ID token still works until it expires, and rules can't tell it's been revoked. Where that hour matters, such as taking access away at once, keep your own access list, or check [`GET /v1/me`](../api-reference/get-me.mdx) from your server.
 - **Without `roles/firebaseauth.admin` on your project** (see above), a change never signs anyone out of your app, so these claims stay as they were until the person signs in again. Don't check them in rules without that role.
 

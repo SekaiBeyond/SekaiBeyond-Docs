@@ -84,16 +84,17 @@ const me = await res.json();
 
 - `app`：应用 ID（`appId`）。
 - `group`：用户在本站的组别（`president`、`core-staff`、`staff` 或 `user`）。
-- `eventStaff`：仅当应用拥有 `event-staff:read` 时提供。用户担任工作人员的未归档活动的 ID，按开始时间从近到远排列；没有则为 `[]`。令牌声明的大小上限为 1,000 字节，因此如果某人担任工作人员的活动多到放不下（约 35 个），最远的那些会被省略。[`GET /v1/me`](../api-reference/get-me.mdx) 会列出全部活动，包括已归档的活动。
+- `eventStaff`：仅当应用拥有 `event-staff:read` 时提供。用户担任工作人员的未归档活动的 ID，没有则为 `[]`：尚未结束的活动排在前面，按开始时间从近到远排列；其后是已结束但尚未归档的活动。令牌声明的大小上限为 1,000 字节，因此如果某人担任工作人员的活动多到放不下（约 35 个），被省略的是已结束或最远的那些。[`GET /v1/me`](../api-reference/get-me.mdx) 会列出全部活动，包括已归档的活动。
 - `mintedAt`：签发该次登录时的毫秒时间戳。
 
-声明反映的是登录时的情况。用户在本站的 `group` 或 `eventStaff` 发生变化时，会被退出你的应用，下次登录时便会带上新的值，详见下文。
+声明反映的是登录时的情况。当你的应用的登录所带的声明发生变化时，用户会被退出你的应用，下次登录时便会带上新的值，详见下文。
 
 每次 `/api/v1` 调用都会实时读取用户在本站的账号：
 
 - **退出所有设备、退出其他设备、设置新密码（修改或重置）或撤销邮箱变更**后，`/api/v1` 会立即以 `401 session-ended` 拒绝该时间点之前的登录凭证。同时会吊销用户在你的应用项目中的刷新令牌，因此其在应用中的登录会在当前 ID 令牌过期后（一小时内）结束。
 - **注销账号**在账号被移除时生效，即申请注销至少 48 小时之后（期间可以取消）。此后 `/api/v1` 返回 `401 session-ended`，该用户也会从你的应用项目中删除。
-- **更改用户的组别，或将其设为未归档活动的工作人员、或将其移出**（由管理员操作，或用户自己使用工作人员码加入）时，会吊销该用户在你的应用项目中的刷新令牌。其在应用中的登录会在当前 ID 令牌过期后（一小时内）结束，重新登录后便会带上新的声明。`/v1/me` 会立即返回变化，`/api/v1` 也会继续接受其当前的登录。仅修改头衔，或更改已归档活动的工作人员，不会改变任何声明，也不会让任何人退出登录。活动前大量设置工作人员时，相关用户可能需要更频繁地重新登录。
+- **更改用户的组别**会让其退出所有应用。**将其设为未归档活动的工作人员，或将其移出**（由管理员操作，或用户自己使用工作人员码加入）时，会让其退出所有拥有 `event-staff:read` 的应用。两种情况下都会吊销该用户在你的应用项目中的刷新令牌：其在应用中的登录会在当前 ID 令牌过期后（一小时内）结束，重新登录后便会带上新的声明。`/v1/me` 会立即返回变化，`/api/v1` 也会继续接受其当前的登录。仅修改头衔，或更改已归档活动的工作人员，不会改变任何声明，也不会让任何人退出登录。活动前大量设置工作人员时，相关用户可能需要更频繁地重新登录。
+- **为应用添加或移除 `event-staff:read`** 会让所有通过彼世界账号登录该应用的人退出登录，这样他们下次登录时便会带上或不再带有 `eventStaff`。你的应用自己创建的、拥有独立登录方式的用户不受影响。
 - **修改应用的权限范围或移除应用**会在 10 秒内对 `/api/v1` 生效。
 - 每位用户在每个应用中每分钟最多调用 **60 次**。
 
@@ -125,9 +126,15 @@ function signedInWithSekaiBeyond() {
     && request.auth.token.app == '<appId>';
 }
 
+// 在签发后 5 分钟内使用的登录，/authorize 的登录都是如此。被搁置更久的登录
+// 可能带着某次变化之前的声明，而那次退出登录并未覆盖到它。
+function usedPromptly() {
+  return request.auth.token.auth_time * 1000 - request.auth.token.mintedAt < 300000;
+}
+
 // 本站的核心工作人员和会长。
 function isCoreStaff() {
-  return signedInWithSekaiBeyond()
+  return signedInWithSekaiBeyond() && usedPromptly()
     && request.auth.token.group in ['core-staff', 'president'];
 }
 
@@ -135,7 +142,7 @@ function isCoreStaff() {
 // 因此请在你自己的数据库中保存每个活动的开始和结束时间，例如从 GET /v1/events 复制。
 function staffsDuring(eventId) {
   let event = get(/databases/$(database)/documents/events/$(eventId)).data;
-  return signedInWithSekaiBeyond()
+  return signedInWithSekaiBeyond() && usedPromptly()
     && eventId in request.auth.token.get('eventStaff', [])
     && request.time >= event.startAt
     && request.time < event.endAt;
@@ -147,6 +154,7 @@ match /events/{eventId}/checklists/{checklistId} {
 ```
 
 - **除登录方式外，还要检查 `app`，** 这样只有为你的应用签发的登录才算数。
+- **凡是检查 `group` 或 `eventStaff` 的地方，都要检查登录是否及时使用**（`usedPromptly`）。登录令牌签发后一小时内都有效，因此在某次变化之前签发、之后才使用的令牌，会以旧的声明开始一次登录，而任何退出登录都无法覆盖它。
 - **`group` 和 `eventStaff` 最多可能滞后一小时。** 发生变化时用户会被退出你的应用，但其当前的 ID 令牌在过期前仍然有效，而规则无法得知它已被吊销。如果这一小时很重要（例如需要立即收回权限），请维护你自己的访问名单，或从服务器调用 [`GET /v1/me`](../api-reference/get-me.mdx) 检查。
 - **如果你的项目没有授予 `roles/firebaseauth.admin`**（见上文），变化永远不会让任何人退出你的应用，这些声明会一直保持原样，直到用户重新登录。没有该角色时，不要在规则中检查它们。
 
