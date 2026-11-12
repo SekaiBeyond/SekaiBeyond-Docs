@@ -3,7 +3,7 @@ title: Sign in with Sekai Beyond
 description: Let people sign in to your Firebase app with their Sekai Beyond account, and learn who they are.
 ---
 
-Registered apps such as SKBY Manager can sign people in with their Sekai Beyond accounts. Instead of sharing a database, `issueAppToken` mints a Firebase custom token **for the app's own Firebase project**, signed through IAM as the app's service account, so no service-account key file is ever stored.
+Registered apps such as SKBY Manager can sign people in with their Sekai Beyond accounts. Instead of sharing a database, the site mints a Firebase custom token **for the app's own Firebase project**, signed through IAM as the app's service account, so no service-account key file is ever stored. The app gets it by trading a one-time code, with a code verifier only the app holds (PKCE), so nothing in the address bar can sign anyone in.
 
 - **The main site** tells the app who someone is. That's all a sign-in reads: the *site's* data, such as events and the team, is read with the app's [API keys](./keys.mdx), from its server, as far as each key's scopes go.
 - **The app** keeps its own data, and decides who may do what in the app, and who of its users sees what its keys read, in its own database and rules.
@@ -17,7 +17,7 @@ Any signed-in account here may sign in to any registered app that has user sign-
 
 In **Tools > Apps**, register the app with **People sign in to it with their account here** ticked:
 
-- **Redirect URIs**: 1–10 URLs where sign-in may hand people back to (`https://`, or `http://localhost` / `http://127.0.0.1` for local testing, with no `#fragment`). Pages on those origins may also call [`GET /v1/me`](../api-reference/get-me.mdx) from a browser (CORS).
+- **Redirect URIs**: 1–10 URLs where sign-in may hand people back to (`https://`, or `http://localhost` / `http://127.0.0.1` for local testing, with no `#fragment`). Pages on those origins may also call [`POST /v1/token`](../api-reference/exchange-code.mdx) and [`GET /v1/me`](../api-reference/get-me.mdx) from a browser (CORS).
 - **Firebase project ID** and **Service account**: the app's own Firebase project ID (such as `skby-manager`) and the service account its custom tokens are signed as (usually its `firebase-adminsdk` service account).
 
 </Step>
@@ -30,7 +30,7 @@ Open **Setup for its maintainers** on the app's card in **Tools > Apps** and run
 1. `roles/iam.serviceAccountTokenCreator` on the app's service account, so our functions can sign custom tokens for the app's project.
 2. `roles/firebaseauth.admin` on the app's project, so signing out everywhere, changing a password, undoing an email change, or deleting an account here also revokes or deletes that user in the app's project.
 
-Sign-in needs the first: until it's granted, **Continue** on `/authorize` fails. Without the second, sign-in works, but the app's own project is never told when someone's sign-ins end here.
+Sign-in needs the first: until it's granted, trading a code at `/v1/token` fails with `500 sign-in-failed`. Without the second, sign-in works, but the app's own project is never told when someone's sign-ins end here.
 
 </Step>
 <Step>
@@ -40,31 +40,66 @@ Sign-in needs the first: until it's granted, **Continue** on `/authorize` fails.
 Redirect the browser to:
 
 ```
-https://sekaibeyond.com/authorize?app=<appId>&state=<state>&redirect_uri=<redirectUri>
+https://sekaibeyond.com/authorize?app=<appId>&state=<state>&code_challenge=<codeChallenge>&code_challenge_method=S256&redirect_uri=<redirectUri>
 ```
 
 - `app`: the app's ID.
 - `state`: 16–128 characters of `A-Z`, `a-z`, `0-9`, `_` and `-`, generated randomly for this sign-in and kept in `sessionStorage` so you can check it when they return.
+- `code_challenge`: the base64url SHA-256, without padding, of a **code verifier**: 43–128 random characters of `A-Z`, `a-z`, `0-9`, `-`, `.`, `_` and `~` that you generate for this sign-in and keep in `sessionStorage` with `state`. Only your page holds it, so only your page can trade the code that comes back (PKCE, [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)).
+- `code_challenge_method`: `S256`, the only method taken.
 - `redirect_uri`: optional when you want the first redirect URI registered on the app; when given, it must match one of the app's registered redirect URIs.
+
+```js
+// 32 random bytes as base64url: 43 characters.
+const random = () => btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))))
+  .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const state = random();
+const codeVerifier = random();
+const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
+const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+  .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+sessionStorage.setItem('sekaiSignIn', JSON.stringify({ state, codeVerifier }));
+location.assign('https://sekaibeyond.com/authorize?' + new URLSearchParams({
+  app: '<appId>', state, code_challenge: codeChallenge, code_challenge_method: 'S256',
+}));
+```
 
 Someone who isn't signed in here yet is asked to sign in first. The page then shows the app's name, its maintainers (if any), and what it will see: their name, photo and role here. It never shares their email or password. Nothing happens until they click **Continue**.
 
 </Step>
 <Step>
 
-### Finish signing in and ask who they are
+### Trade the code, sign in, and ask who they are
 
 When they click **Continue**, `/authorize` redirects to:
 
 ```
-<redirect_uri>#token=<customToken>&state=<state>
+<redirect_uri>#code=<code>&state=<state>
 ```
 
-The token is in the URL fragment (`#…`), so it never reaches a server in a request URL or `Referer` header. In your app:
+The code is in the URL fragment (`#…`), so it never reaches a server in a request URL or `Referer` header, and on its own it signs no one in: it works once, for two minutes, and only with your code verifier. In your app:
 
-1. Read `token` and `state` from `window.location.hash`, clear the hash with `history.replaceState`, and verify that `state` matches what you sent.
-2. Call `signInWithCustomToken(auth, token)` on your app's Firebase Auth instance. The user now has the same `uid` in your project as on `sekaibeyond.com`.
-3. To learn who they are here, call [`GET /v1/me`](../api-reference/get-me.mdx) from the browser (on a registered origin, at `https://sekaibeyond.com/api/v1/me`) or from your server (`https://sekaibeyond.com/api/v1/me` or `https://api.sekaibeyond.com/v1/me`), with the user's Firebase ID token (`await user.getIdToken()`) in the `Authorization` header:
+1. Read `code` and `state` from `window.location.hash`, clear the hash with `history.replaceState`, and verify that `state` matches what you saved.
+2. Trade the code at [`POST /v1/token`](../api-reference/exchange-code.mdx), with the code verifier you saved: from the page (on the redirect URI's origin, at `https://sekaibeyond.com/api/v1/token`) or from your server. The answer's `token` is a Firebase custom token for your project, made at that moment.
+3. Call `signInWithCustomToken(auth, token)` on your app's Firebase Auth instance straight away. The user now has the same `uid` in your project as on `sekaibeyond.com`.
+
+```js
+const params = new URLSearchParams(location.hash.slice(1));
+history.replaceState(null, '', location.pathname + location.search);
+const saved = JSON.parse(sessionStorage.getItem('sekaiSignIn'));
+sessionStorage.removeItem('sekaiSignIn');
+if (!saved || params.get('state') !== saved.state) throw new Error('This sign-in link is not ours.');
+const res = await fetch('https://sekaibeyond.com/api/v1/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ code: params.get('code'), codeVerifier: saved.codeVerifier }),
+});
+if (!res.ok) throw new Error((await res.json()).error.code);
+const { token } = await res.json();
+await signInWithCustomToken(auth, token);
+```
+
+4. To learn who they are here, call [`GET /v1/me`](../api-reference/get-me.mdx) from the browser (on a registered origin, at `https://sekaibeyond.com/api/v1/me`) or from your server (`https://sekaibeyond.com/api/v1/me` or `https://api.sekaibeyond.com/v1/me`), with the user's Firebase ID token (`await user.getIdToken()`) in the `Authorization` header:
 
 ```js
 const idToken = await auth.currentUser.getIdToken();
@@ -85,7 +120,7 @@ The custom token's claims carry onto every ID token the sign-in renews to:
 
 - `app`: the app's ID (`appId`).
 - `group`: the person's group here (`president`, `core-staff`, `staff` or `user`).
-- `mintedAt`: when the sign-in was issued, in milliseconds since the epoch.
+- `mintedAt`: when the sign-in was issued, as the code was traded for it, in milliseconds since the epoch.
 
 The claims are as of the sign-in. When the person's group changes, they're signed out of your app, so their next sign-in carries the new one: see below.
 
@@ -125,7 +160,7 @@ function signedInWithSekaiBeyond() {
     && request.auth.token.app == '<appId>';
 }
 
-// Used within 5 minutes of being issued, as /authorize's sign-ins are. One held back
+// Used within 5 minutes of being issued, as one from /v1/token is when used straight away. One held back
 // for longer could carry claims from before a change it was never signed out for.
 function usedPromptly() {
   return request.auth.token.auth_time * 1000 - request.auth.token.mintedAt < 300000;

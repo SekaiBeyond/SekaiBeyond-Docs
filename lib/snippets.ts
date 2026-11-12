@@ -16,10 +16,14 @@ function json(value: unknown, indent: string) {
 
 const envVar = ({ auth }: Operation) => (auth === 'token' ? 'SEKAI_ID_TOKEN' : 'SEKAI_API_KEY');
 
+/** Whether the example sends an Authorization header: all but /v1/token, whose code is the credential. */
+const authorized = ({ auth }: Operation) => auth !== 'none';
+
 function curl(op: Operation) {
     const { path, body } = op;
     // -d makes it a POST, the only method with a body.
-    const lines = [`curl ${baseUrl}${path}`, `-H "Authorization: Bearer $${envVar(op)}"`];
+    const lines = [`curl ${baseUrl}${path}`];
+    if (authorized(op)) lines.push(`-H "Authorization: Bearer $${envVar(op)}"`);
     if (body !== undefined) {
         lines.push(`-H "Content-Type: application/json"`, `-d '${json(body, '  ')}'`);
     }
@@ -63,12 +67,12 @@ const jsLiteral: LiteralStyle = {
 
 function python(op: Operation) {
     const { method, path, body } = op;
-    const args = [`"${baseUrl}${path}"`, `headers={"Authorization": f"Bearer {os.environ['${envVar(op)}']}"}`];
+    const args = [`"${baseUrl}${path}"`];
+    if (authorized(op)) args.push(`headers={"Authorization": f"Bearer {os.environ['${envVar(op)}']}"}`);
     if (body !== undefined) args.push(`json=${literal(body, '    ', pythonLiteral)}`);
     args.push('timeout=30');
 
-    return `import os
-import requests
+    return `${authorized(op) ? 'import os\n' : ''}import requests
 
 response = requests.${method.toLowerCase()}(
 ${args.map((a) => `    ${a},`).join('\n')}
@@ -78,7 +82,7 @@ print(response.status_code, response.json())`;
 
 function javascript(op: Operation) {
     const { method, path, body } = op;
-    const headers = [`Authorization: \`Bearer \${process.env.${envVar(op)}}\`,`];
+    const headers = authorized(op) ? [`Authorization: \`Bearer \${process.env.${envVar(op)}}\`,`] : [];
     if (body !== undefined) headers.push(`'Content-Type': 'application/json',`);
 
     const init = [
@@ -95,7 +99,7 @@ console.log(response.status, await response.json());`;
 
 function go(op: Operation) {
     const { method, path, body } = op;
-    const imports = body !== undefined ? ['bytes', 'fmt', 'io', 'net/http', 'os'] : ['fmt', 'io', 'net/http', 'os'];
+    const imports = [...(body !== undefined ? ['bytes'] : []), 'fmt', 'io', 'net/http', ...(authorized(op) ? ['os'] : [])];
     const lines: string[] = [];
     if (body !== undefined) {
         lines.push(`body := []byte(\`${JSON.stringify(body, null, 2)}\`)`);
@@ -104,7 +108,7 @@ function go(op: Operation) {
         lines.push(`req, err := http.NewRequest("${method}", "${baseUrl}${path}", nil)`);
     }
     lines.push('if err != nil {', '\tpanic(err)', '}');
-    lines.push(`req.Header.Set("Authorization", "Bearer "+os.Getenv("${envVar(op)}"))`);
+    if (authorized(op)) lines.push(`req.Header.Set("Authorization", "Bearer "+os.Getenv("${envVar(op)}"))`);
     if (body !== undefined) lines.push('req.Header.Set("Content-Type", "application/json")');
     lines.push(
         '',
@@ -139,11 +143,8 @@ function java(op: Operation) {
         const text = JSON.stringify(body, null, 2).split('\n');
         lines.push(`String body = """`, ...text.map((l) => `    ${l}`), `    """;`);
     }
-    lines.push(
-        'HttpRequest request = HttpRequest.newBuilder()',
-        `    .uri(URI.create("${baseUrl}${path}"))`,
-        `    .header("Authorization", "Bearer " + System.getenv("${envVar(op)}"))`,
-    );
+    lines.push('HttpRequest request = HttpRequest.newBuilder()', `    .uri(URI.create("${baseUrl}${path}"))`);
+    if (authorized(op)) lines.push(`    .header("Authorization", "Bearer " + System.getenv("${envVar(op)}"))`);
     if (body !== undefined) {
         lines.push(
             '    .header("Content-Type", "application/json")',

@@ -14,7 +14,7 @@ Both take the same paths and answer the same way, with one difference: only `sek
 
 ## Authentication
 
-Every request carries either a server API key or the Firebase ID token of a person signed in to a registered app:
+Every request but one carries either a server API key or the Firebase ID token of a person signed in to a registered app:
 
 ```
 Authorization: Bearer sbk_…         (server API key)
@@ -24,6 +24,7 @@ Content-Type: application/json      (POST only)
 
 - **Server API keys** (`sbk_…`) are created by core-staff under a registered app in **Tools > Apps** (see [Apps and API keys](../ticket-api/keys.mdx)). They are server-to-server only and never carry CORS headers.
 - **Person ID tokens** come from signing a person in to a registered app at `/authorize` (see [Sign in with Sekai Beyond](../ticket-api/sign-in.mdx)). They reach only [`GET /v1/me`](./get-me.mdx), which says who the person is. Pages on the origins of the app's redirect URIs may call it directly from a browser (CORS), or the app's server may.
+- **The one exception,** [`POST /v1/token`](./exchange-code.mdx), takes no `Authorization` header. It's how an app gets a person's sign-in: it trades the one-time code `/authorize` handed back, with the code verifier only the app holds, for a custom token.
 
 ## Conventions
 
@@ -36,6 +37,7 @@ Content-Type: application/json      (POST only)
 
 | Endpoint | Caller | Scope | What it does |
 |---|---|---|---|
+| [`POST /v1/token`](./exchange-code.mdx) | Code | — | Trade a sign-in code from `/authorize` for a sign-in |
 | [`GET /v1/me`](./get-me.mdx) | Person | — | Get the signed-in person as they are now |
 | [`GET /v1/team`](./list-team.mdx) | Key | `team:read` | List president, core-staff and staff |
 | [`GET /v1/events`](./list-events.mdx) | Key | `events:read` | List events (all, or the ones the key is held to) |

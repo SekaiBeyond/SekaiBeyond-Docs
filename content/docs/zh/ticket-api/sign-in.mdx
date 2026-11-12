@@ -3,7 +3,7 @@ title: 使用彼世界账号登录
 description: 让用户使用彼世界账号登录你的 Firebase 应用，并确认他们是谁。
 ---
 
-SKBY Manager 等已登记的应用可以让用户使用自己的彼世界账号登录。应用无需与主站共用数据库：`issueAppToken` 会通过 IAM 以该应用自己的服务账号身份，**为该应用自己的 Firebase 项目**签发自定义令牌（Custom Token），因此无需保存任何服务账号密钥文件。
+SKBY Manager 等已登记的应用可以让用户使用自己的彼世界账号登录。应用无需与主站共用数据库：主站会通过 IAM 以该应用自己的服务账号身份，**为该应用自己的 Firebase 项目**签发自定义令牌（Custom Token），因此无需保存任何服务账号密钥文件。应用用一次性登录码加上只有它持有的 code verifier 换取令牌（PKCE），因此地址栏中的内容无法让任何人登录。
 
 - **主站**告诉应用某人是谁。登录凭证只能读取这些：*主站*的数据（例如活动和团队名单）需由应用的服务器使用其 [API 密钥](./keys.mdx)读取，范围以各密钥的权限为准。
 - **应用**保存自己的数据，并在自己的数据库与安全规则中决定谁能在应用内做什么，以及其用户中谁能查看密钥读取的内容。
@@ -17,7 +17,7 @@ SKBY Manager 等已登记的应用可以让用户使用自己的彼世界账号�
 
 在管理后台的「工具 > 应用」中登记应用，并保持勾选「用户用本站账号登录此应用」：
 
-- **回调地址**（`redirectUris`）：1–10 个登录后可返回的地址（须为 `https://`，本地测试可用 `http://localhost` 或 `http://127.0.0.1`，且不含 `#fragment`）。这些站点上的页面也可以在浏览器中直接调用 [`GET /v1/me`](../api-reference/get-me.mdx)（CORS）。
+- **回调地址**（`redirectUris`）：1–10 个登录后可返回的地址（须为 `https://`，本地测试可用 `http://localhost` 或 `http://127.0.0.1`，且不含 `#fragment`）。这些站点上的页面也可以在浏览器中直接调用 [`POST /v1/token`](../api-reference/exchange-code.mdx) 和 [`GET /v1/me`](../api-reference/get-me.mdx)（CORS）。
 - **Firebase 项目 ID** 与 **服务账号**：该应用自己的 Firebase 项目 ID（例如 `skby-manager`）以及用于签名登录凭证的服务账号（通常是其 `firebase-adminsdk` 服务账号）。
 
 </Step>
@@ -30,7 +30,7 @@ SKBY Manager 等已登记的应用可以让用户使用自己的彼世界账号�
 1. 在应用的服务账号上授予 `roles/iam.serviceAccountTokenCreator`，以便我们的函数为该应用的项目签名自定义令牌。
 2. 在应用的项目上授予 `roles/firebaseauth.admin`，以便用户在本站退出所有设备、修改密码、撤销邮箱变更或注销账号时，也能同步吊销或删除该应用项目中的对应用户。
 
-登录需要第一项：授予之前，在 `/authorize` 点击「继续」会失败。没有第二项时登录仍可用，但用户在本站的登录被终止时，应用自己的项目不会得到通知。
+登录需要第一项：授予之前，在 `/v1/token` 兑换登录码会以 `500 sign-in-failed` 失败。没有第二项时登录仍可用，但用户在本站的登录被终止时，应用自己的项目不会得到通知。
 
 </Step>
 <Step>
@@ -40,31 +40,66 @@ SKBY Manager 等已登记的应用可以让用户使用自己的彼世界账号�
 将浏览器跳转至：
 
 ```
-https://sekaibeyond.com/authorize?app=<appId>&state=<state>&redirect_uri=<redirectUri>
+https://sekaibeyond.com/authorize?app=<appId>&state=<state>&code_challenge=<codeChallenge>&code_challenge_method=S256&redirect_uri=<redirectUri>
 ```
 
 - `app`：应用 ID。
 - `state`：16–128 个字符（仅限 `A-Z`、`a-z`、`0-9`、`_` 和 `-`），每次发起登录时随机生成并保存在 `sessionStorage` 中，以便返回时核对。
+- `code_challenge`：**code verifier** 的 SHA-256 的 base64url 编码（不含填充）。code verifier 是你为这次登录随机生成的 43–128 个字符（仅限 `A-Z`、`a-z`、`0-9`、`-`、`.`、`_` 和 `~`），与 `state` 一起保存在 `sessionStorage` 中。只有你的页面持有它，因此只有你的页面能兑换返回的登录码（PKCE，[RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)）。
+- `code_challenge_method`：`S256`，唯一支持的方式。
 - `redirect_uri`：使用应用的第一个已登记回调地址时可省略；传入时必须与应用的已登记回调地址之一完全一致。
+
+```js
+// 32 个随机字节的 base64url 编码：43 个字符。
+const random = () => btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))))
+  .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const state = random();
+const codeVerifier = random();
+const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
+const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+  .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+sessionStorage.setItem('sekaiSignIn', JSON.stringify({ state, codeVerifier }));
+location.assign('https://sekaibeyond.com/authorize?' + new URLSearchParams({
+  app: '<appId>', state, code_challenge: codeChallenge, code_challenge_method: 'S256',
+}));
+```
 
 尚未登录本站的用户会先被要求登录。随后页面会显示应用名称、维护者（如有）以及应用将能看到的内容：用户在本站的名称、头像和角色。它绝不会共享用户的邮箱或密码。在用户点击「继续」之前不会发生任何操作。
 
 </Step>
 <Step>
 
-### 完成登录并确认用户是谁
+### 兑换登录码、完成登录并确认用户是谁
 
 用户点击「继续」后，`/authorize` 会跳转至：
 
 ```
-<redirect_uri>#token=<customToken>&state=<state>
+<redirect_uri>#code=<code>&state=<state>
 ```
 
-令牌放在 URL 片段（`#…`）中，因此绝不会通过请求地址或 `Referer` 头发送到服务器。在你的应用中：
+登录码放在 URL 片段（`#…`）中，因此绝不会通过请求地址或 `Referer` 头发送到服务器；它本身也无法让任何人登录：只能用一次，两分钟内有效，并且必须配合你的 code verifier。在你的应用中：
 
-1. 从 `window.location.hash` 读取 `token` 和 `state`，用 `history.replaceState` 清除地址栏中的 `#…`，并核对 `state` 与发出时一致。
-2. 在你的应用的 Firebase Auth 实例上调用 `signInWithCustomToken(auth, token)`。此时该用户在你的项目中的 `uid` 与在 `sekaibeyond.com` 上的完全一致。
-3. 要确认用户在本站是谁，从浏览器（在已登记的站点上，请求 `https://sekaibeyond.com/api/v1/me`）或你的服务器（`https://sekaibeyond.com/api/v1/me` 或 `https://api.sekaibeyond.com/v1/me`）调用 [`GET /v1/me`](../api-reference/get-me.mdx)，并将该用户的 Firebase ID 令牌（`await user.getIdToken()`）放入 `Authorization` 请求头：
+1. 从 `window.location.hash` 读取 `code` 和 `state`，用 `history.replaceState` 清除地址栏中的 `#…`，并核对 `state` 与保存的一致。
+2. 用保存的 code verifier 在 [`POST /v1/token`](../api-reference/exchange-code.mdx) 兑换登录码：可从页面调用（在回调地址所在源，请求 `https://sekaibeyond.com/api/v1/token`），也可从你的服务器调用。响应中的 `token` 是为你的项目签发的 Firebase 自定义令牌，签发于兑换的那一刻。
+3. 立即在你的应用的 Firebase Auth 实例上调用 `signInWithCustomToken(auth, token)`。此时该用户在你的项目中的 `uid` 与在 `sekaibeyond.com` 上的完全一致。
+
+```js
+const params = new URLSearchParams(location.hash.slice(1));
+history.replaceState(null, '', location.pathname + location.search);
+const saved = JSON.parse(sessionStorage.getItem('sekaiSignIn'));
+sessionStorage.removeItem('sekaiSignIn');
+if (!saved || params.get('state') !== saved.state) throw new Error('这不是本页发起的登录。');
+const res = await fetch('https://sekaibeyond.com/api/v1/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ code: params.get('code'), codeVerifier: saved.codeVerifier }),
+});
+if (!res.ok) throw new Error((await res.json()).error.code);
+const { token } = await res.json();
+await signInWithCustomToken(auth, token);
+```
+
+4. 要确认用户在本站是谁，从浏览器（在已登记的站点上，请求 `https://sekaibeyond.com/api/v1/me`）或你的服务器（`https://sekaibeyond.com/api/v1/me` 或 `https://api.sekaibeyond.com/v1/me`）调用 [`GET /v1/me`](../api-reference/get-me.mdx)，并将该用户的 Firebase ID 令牌（`await user.getIdToken()`）放入 `Authorization` 请求头：
 
 ```js
 const idToken = await auth.currentUser.getIdToken();
@@ -85,7 +120,7 @@ const me = await res.json();
 
 - `app`：应用 ID（`appId`）。
 - `group`：用户在本站的组别（`president`、`core-staff`、`staff` 或 `user`）。
-- `mintedAt`：签发该次登录时的毫秒时间戳。
+- `mintedAt`：签发该次登录（即兑换登录码）时的毫秒时间戳。
 
 声明反映的是登录时的情况。用户的组别发生变化时，会被退出你的应用，下次登录时便会带上新的组别，详见下文。
 
@@ -125,7 +160,7 @@ function signedInWithSekaiBeyond() {
     && request.auth.token.app == '<appId>';
 }
 
-// 在签发后 5 分钟内使用的登录，/authorize 的登录都是如此。被搁置更久的登录
+// 在签发后 5 分钟内使用的登录；从 /v1/token 取得后立即使用的登录都是如此。被搁置更久的登录
 // 可能带着某次变化之前的声明，而那次退出登录并未覆盖到它。
 function usedPromptly() {
   return request.auth.token.auth_time * 1000 - request.auth.token.mintedAt < 300000;

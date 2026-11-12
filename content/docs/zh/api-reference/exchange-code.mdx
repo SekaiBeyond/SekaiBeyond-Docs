@@ -1,0 +1,45 @@
+---
+title: 兑换登录码
+description: 把 /authorize 交回的一次性登录码换成你的应用的登录凭证。
+full: true
+---
+
+<Endpoint method="POST" path="/v1/token" />
+
+<ApiPage operation="exchangeCode">
+
+把 `/authorize` 交回你的应用的一次性登录码（`#code=…&state=…`）兑换成你的应用项目的 Firebase 自定义令牌（Custom Token），再传给 `signInWithCustomToken`。完整流程见[使用彼世界账号登录](../ticket-api/sign-in.mdx)。
+
+它不需要 `Authorization` 请求头：登录码加上只有你的应用持有的 code verifier 就是凭证（PKCE，[RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)）。请从登录码所返回的回调地址所在源的页面调用（CORS，请求 `https://sekaibeyond.com/api/v1/token`），或从你的应用的服务器调用。
+
+- **登录码只能用一次。** 第一次提交时即作废，无论结果如何，因此再次提交、或先用错误的 verifier 提交过的登录码都无法再用。
+- **登录码两分钟内有效。** 请在页面加载后立即兑换。
+- **令牌在兑换时签发，** 带有用户当时的组别，`mintedAt` 也是当时的时间。请立即用它登录：令牌一小时内有效，但检查 [`usedPromptly()`](../ticket-api/sign-in.mdx#决定谁可以使用你的应用) 的规则会拒绝签发 5 分钟后才开始的登录。
+
+## 请求体
+
+<Params>
+<Param name="code" type="string" required>
+`/authorize` 交回的 URL 片段中的 `code`，共 43 个字符。
+</Param>
+<Param name="codeVerifier" type="string" required>
+你为这次登录生成的 code verifier，其 base64url 编码的 SHA-256 已作为 `code_challenge` 发给 `/authorize`：43–128 个字符，仅限 `A-Z`、`a-z`、`0-9`、`-`、`.`、`_` 和 `~`。
+</Param>
+</Params>
+
+## 返回
+
+**200**，返回 `{"token": "<自定义令牌>"}`。令牌的声明为 `app`、`group` 和 `mintedAt`，见[令牌声明与实时检查](../ticket-api/sign-in.mdx#令牌声明与实时检查)。
+
+## 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|---|---|---|
+| 400 | `invalid-request` | 请求体不是带有格式正确的 `code` 和 `codeVerifier` 的 JSON 对象。 |
+| 400 | `invalid-code` | 登录码不存在、已用过、已过期，或 verifier 不对；从与登录码交回的源不同的页面发送；或应用已被移除、已关闭用户登录，或不再登记该回调地址。请让用户重新前往 `/authorize`。 |
+| 401 | `session-ended` | 登录码签发后，该用户在本站的登录已被终止，或其账号已被删除。 |
+| 500 | `sign-in-failed` | 主站无法以应用的服务账号签名令牌，多半是应用的项目尚未授予 Service Account Token Creator（见[授予 IAM 角色](../ticket-api/sign-in.mdx#在应用的项目上授予-iam-角色)）。 |
+
+以及任何端点都可能返回的 `404`、`405` 和 `500 internal`，见[错误](./errors.mdx)。其中与 `Authorization` 有关的错误不适用于此端点。
+
+</ApiPage>

@@ -6,7 +6,7 @@ description: Sign people in to registered apps, read our events and team, and se
 Two kinds of caller use the API, both under apps registered by core-staff in **Tools > Apps**:
 
 - **A registered app's server, with an API key** ([Apps and API keys](./keys.mdx)): reads every event, the team and any event's staff, and sells tickets for the paid ones. Tickets sold this way go on the event's attendee list and scan at the door like any other. The buyer holds them in that app rather than in an account on the site, so they don't show in anyone's **My Tickets** there. An order can also ask us to email the buyer their tickets.
-- **A person signed in to a registered app, with that sign-in's ID token** ([Sign in with Sekai Beyond](./sign-in.mdx)): calls [`GET /v1/me`](../api-reference/get-me.mdx) from the app's pages (CORS) or its server to learn who they are here. That's all a sign-in reads: the rest is read with the app's keys.
+- **A person signed in to a registered app, with that sign-in's ID token** ([Sign in with Sekai Beyond](./sign-in.mdx)): the app gets the sign-in by trading the one-time code `/authorize` hands back at [`POST /v1/token`](../api-reference/exchange-code.mdx), then calls [`GET /v1/me`](../api-reference/get-me.mdx) from its pages (CORS) or its server to learn who they are here. That's all a sign-in reads: the rest is read with the app's keys.
 
 <Callout type="warn" title="Each side decides who can access the data it holds.">
   A server API key sees events, the team and every event's staff as core-staff do in the admin panel, unpublished events included, so keys go only to our own systems and to partners' servers we trust. Who in the app may see what a key reads, and what people can do inside the app, is up to the app. A person's sign-in only says who they are.
@@ -18,6 +18,7 @@ Its events are both kinds the site has, unarchived and archived, each with the s
 
 | Endpoint | Caller | Scope | What it does |
 |---|---|---|---|
+| [`POST /v1/token`](../api-reference/exchange-code.mdx) | Code | — | Trade a sign-in code from `/authorize` for a sign-in |
 | [`GET /v1/me`](../api-reference/get-me.mdx) | Person | — | Get the signed-in person as they are now |
 | [`GET /v1/team`](../api-reference/list-team.mdx) | Key | `team:read` | List president, core-staff and staff |
 | [`GET /v1/events`](../api-reference/list-events.mdx) | Key | `events:read` | List events (all, or the ones the key is held to) |

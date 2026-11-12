@@ -9,8 +9,11 @@ export interface Operation {
     method: Method;
     /** With example values filled in, as a caller would send it. */
     path: string;
-    /** Whether the example is called with a server API key (default) or a signed-in person's ID token. */
-    auth?: 'key' | 'token';
+    /**
+     * Whether the example is called with a server API key (default), a
+     * signed-in person's ID token, or nothing (the code it sends is the credential).
+     */
+    auth?: 'key' | 'token' | 'none';
     body?: unknown;
     status: number;
     response: unknown;
@@ -135,6 +138,17 @@ const scannedOrder = {
 };
 
 export const examples = {
+    exchangeCode: {
+        method: 'POST',
+        path: '/v1/token',
+        auth: 'none',
+        body: {
+            code: 'Xb3kQ9vT2mLp8RzN4wYc6Hj1Fd7Gs5Ke0Ua2Io9PlMn',
+            codeVerifier: 'q7Lr2Vx9Nc4Bt8Ym1Kd6Hs3Wf0Jp5Gz2Ae7Ru4Ti9Os',
+        },
+        status: 200,
+        response: { token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lkZW50aXR5dG9vbGtpdC5n…' },
+    },
     getMe: {
         method: 'GET',
         path: '/v1/me',

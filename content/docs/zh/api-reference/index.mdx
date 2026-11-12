@@ -14,7 +14,7 @@ https://sekaibeyond.com/api     （其他地区）
 
 ## 身份验证
 
-每个请求都携带服务器 API 密钥，或已登录某个已登记应用的用户的 Firebase ID 令牌：
+除一个端点外，每个请求都携带服务器 API 密钥，或已登录某个已登记应用的用户的 Firebase ID 令牌：
 
 ```
 Authorization: Bearer sbk_…         （服务器 API 密钥）
@@ -24,6 +24,7 @@ Content-Type: application/json      （仅 POST）
 
 - **服务器 API 密钥**（`sbk_…`）由核心成员在管理后台「工具 > 应用」中的已登记应用下创建（见[应用与 API 密钥](../ticket-api/keys.mdx)）。密钥仅限服务器对服务器调用，响应永远不会带有 CORS 头。
 - **用户 ID 令牌**来自用户在 `/authorize` 登录已登记的应用（见[使用彼世界账号登录](../ticket-api/sign-in.mdx)）。它只能调用 [`GET /v1/me`](./get-me.mdx)，用于确认用户是谁。应用回调地址所在源的网页可以在浏览器中直接调用它（CORS），应用的服务器也可以调用。
+- **唯一的例外** [`POST /v1/token`](./exchange-code.mdx) 不需要 `Authorization` 请求头。应用通过它取得用户的登录：用只有应用持有的 code verifier，把 `/authorize` 交回的一次性登录码兑换成自定义令牌。
 
 ## 约定
 
@@ -36,6 +37,7 @@ Content-Type: application/json      （仅 POST）
 
 | 端点 | 调用方 | 权限范围 | 作用 |
 |---|---|---|---|
+| [`POST /v1/token`](./exchange-code.mdx) | 登录码 | — | 把 `/authorize` 交回的登录码兑换成登录凭证 |
 | [`GET /v1/me`](./get-me.mdx) | 登录用户 | — | 获取当前登录用户此刻的信息 |
 | [`GET /v1/team`](./list-team.mdx) | 密钥 | `team:read` | 列出社长、核心成员和工作人员 |
 | [`GET /v1/events`](./list-events.mdx) | 密钥 | `events:read` | 列出活动（全部，或密钥所限定的活动） |
