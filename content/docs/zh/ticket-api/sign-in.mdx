@@ -83,14 +83,17 @@ const me = await res.json();
 自定义令牌上的声明会保留在该次登录续期出的每一个 ID 令牌上：
 
 - `app`：应用 ID（`appId`）。
-- `group`：用户登录时在本站的组别（`president`、`core-staff`、`staff` 或 `user`）。要获取其当前最新的组别与资料，请调用 [`GET /v1/me`](../api-reference/get-me.mdx)。
+- `group`：用户在本站的组别（`president`、`core-staff`、`staff` 或 `user`）。
+- `eventStaff`：仅当应用拥有 `event-staff:read` 时提供。用户担任工作人员的未归档活动的 ID，按开始时间从近到远排列；没有则为 `[]`。令牌声明的大小上限为 1,000 字节，因此如果某人担任工作人员的活动多到放不下（约 35 个），最远的那些会被省略。[`GET /v1/me`](../api-reference/get-me.mdx) 会列出全部活动，包括已归档的活动。
 - `mintedAt`：签发该次登录时的毫秒时间戳。
+
+声明反映的是登录时的情况。用户在本站的 `group` 或 `eventStaff` 发生变化时，会被退出你的应用，下次登录时便会带上新的值，详见下文。
 
 每次 `/api/v1` 调用都会实时读取用户在本站的账号：
 
 - **退出所有设备、退出其他设备、设置新密码（修改或重置）或撤销邮箱变更**后，`/api/v1` 会立即以 `401 session-ended` 拒绝该时间点之前的登录凭证。同时会吊销用户在你的应用项目中的刷新令牌，因此其在应用中的登录会在当前 ID 令牌过期后（一小时内）结束。
 - **注销账号**在账号被移除时生效，即申请注销至少 48 小时之后（期间可以取消）。此后 `/api/v1` 返回 `401 session-ended`，该用户也会从你的应用项目中删除。
-- **更改用户的组别**不会将其退出登录；`/v1/me` 会立即返回新的组别。
+- **更改用户的组别，或将其设为未归档活动的工作人员、或将其移出**（由管理员操作，或用户自己使用工作人员码加入）时，会吊销该用户在你的应用项目中的刷新令牌。其在应用中的登录会在当前 ID 令牌过期后（一小时内）结束，重新登录后便会带上新的声明。`/v1/me` 会立即返回变化，`/api/v1` 也会继续接受其当前的登录。仅修改头衔，或更改已归档活动的工作人员，不会改变任何声明，也不会让任何人退出登录。活动前大量设置工作人员时，相关用户可能需要更频繁地重新登录。
 - **修改应用的权限范围或移除应用**会在 10 秒内对 `/api/v1` 生效。
 - 每位用户在每个应用中每分钟最多调用 **60 次**。
 
@@ -113,8 +116,39 @@ match /projects/{projectId} {
 }
 ```
 
+规则也可以根据令牌中的 `group` 和 `eventStaff` 声明，按用户在本站的角色放行：
+
+```
+function signedInWithSekaiBeyond() {
+  return request.auth != null
+    && request.auth.token.firebase.sign_in_provider == 'custom'
+    && request.auth.token.app == '<appId>';
+}
+
+// 本站的核心工作人员和会长。
+function isCoreStaff() {
+  return signedInWithSekaiBeyond()
+    && request.auth.token.group in ['core-staff', 'president'];
+}
+
+// 本站某个活动的工作人员，且仅在活动进行期间。规则无法读取官网的活动，
+// 因此请在你自己的数据库中保存每个活动的开始和结束时间，例如从 GET /v1/events 复制。
+function staffsDuring(eventId) {
+  let event = get(/databases/$(database)/documents/events/$(eventId)).data;
+  return signedInWithSekaiBeyond()
+    && eventId in request.auth.token.get('eventStaff', [])
+    && request.time >= event.startAt
+    && request.time < event.endAt;
+}
+
+match /events/{eventId}/checklists/{checklistId} {
+  allow read: if isCoreStaff() || staffsDuring(eventId);
+}
+```
+
 - **除登录方式外，还要检查 `app`，** 这样只有为你的应用签发的登录才算数。
-- **不要只依赖令牌中的 `group`。** 它是用户登录时的组别，之后用户在本站的组别变更时它不会更新。只检查它的规则，在用户失去该组别后仍会放行，直到其重新登录。要获取用户当前的组别，请调用 [`GET /v1/me`](../api-reference/get-me.mdx)。
+- **`group` 和 `eventStaff` 最多可能滞后一小时。** 发生变化时用户会被退出你的应用，但其当前的 ID 令牌在过期前仍然有效，而规则无法得知它已被吊销。如果这一小时很重要（例如需要立即收回权限），请维护你自己的访问名单，或从服务器调用 [`GET /v1/me`](../api-reference/get-me.mdx) 检查。
+- **如果你的项目没有授予 `roles/firebaseauth.admin`**（见上文），变化永远不会让任何人退出你的应用，这些声明会一直保持原样，直到用户重新登录。没有该角色时，不要在规则中检查它们。
 
 ## 人员权限范围
 
@@ -123,4 +157,4 @@ match /projects/{projectId} {
 | *（无）* | 为当前登录用户调用 [`GET /v1/me`](../api-reference/get-me.mdx) |
 | `events:read` | [列出活动](../api-reference/list-events.mdx)和[获取活动](../api-reference/get-event.mdx)（仅限该用户在官网能看到的活动） |
 | `team:read` | [列出团队名单](../api-reference/list-team.mdx)（仅限登录者为工作人员及以上时） |
-| `event-staff:read` | [列出活动工作人员](../api-reference/list-event-staff.mdx)（仅限登录者为工作人员或该活动的工作人员时） |
+| `event-staff:read` | [列出活动工作人员](../api-reference/list-event-staff.mdx)（仅限登录者为工作人员或该活动的工作人员时）；并通过 `eventStaff` 声明和 [`GET /v1/me`](../api-reference/get-me.mdx) 得知登录者担任工作人员的活动 |

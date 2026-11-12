@@ -140,7 +140,8 @@ export const examples = {
         path: '/v1/me',
         auth: 'token',
         status: 200,
-        response: person,
+        // eventStaffEvents only for an app with event-staff:read.
+        response: { ...person, eventStaffEvents: [unarchivedEvent.id, archivedEvent.id] },
     },
     listTeam: {
         method: 'GET',

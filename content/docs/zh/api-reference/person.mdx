@@ -5,7 +5,7 @@ description: 用户在本站的账号信息，不含邮箱。
 
 [获取当前登录用户](./get-me.mdx)、[列出团队名单](./list-team.mdx)和[列出活动工作人员](./list-event-staff.mdx)返回的对象。
 
-它绝不包含用户的邮箱。
+它绝不包含用户的邮箱。对于拥有 `event-staff:read` 的应用，[获取当前登录用户](./get-me.mdx)会额外返回 `eventStaffEvents`；各名单接口绝不会显示任何人担任工作人员的活动。
 
 ## 字段
 
