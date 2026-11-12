@@ -8,9 +8,9 @@ full: true
 
 <ApiPage operation="getMe">
 
-返回已登录该应用的用户此刻在官网上的信息。需要用户的登录凭证（见[使用彼世界账号登录](../ticket-api/sign-in.mdx)），不需要任何权限范围。拥有 `event-staff:read` 时，还会列出其担任工作人员的活动。
+返回已登录该应用的用户此刻在官网上的信息。需要用户的登录凭证（见[使用彼世界账号登录](../ticket-api/sign-in.mdx)），不需要任何权限范围。这是登录凭证唯一能调用的端点，其余端点都需要 API 密钥。
 
-用它读取该用户当前的 `group`、`displayName`、`photoURL`、`title`、`titleCn` 以及担任工作人员的活动。其令牌中的 `group` 和 `eventStaff` 声明最多可能滞后一小时。
+用它读取该用户当前的 `group`、`displayName`、`photoURL`、`title` 和 `titleCn`。其令牌中的 `group` 声明最多可能滞后一小时。
 
 ## 参数
 
@@ -18,13 +18,7 @@ full: true
 
 ## 返回
 
-**200**，返回 [Person](./person.mdx)；仅当应用拥有 `event-staff:read` 时，另外包含：
-
-<Params>
-<Param name="eventStaffEvents" type="string[]">
-该用户担任工作人员的所有活动的 ID（包括已归档的活动），不保证顺序；没有则为 `[]`。与令牌中的 `eventStaff` 声明不同，它不会被截短。
-</Param>
-</Params>
+**200**，返回 [Person](./person.mdx)。
 
 ## 错误
 

@@ -8,10 +8,7 @@ full: true
 
 <ApiPage operation="listEvents">
 
-返回调用方可见的活动：
-
-- **使用服务器 API 密钥：** 所有活动（未归档和已归档的、免费和付费的、已发布和未发布的），或该密钥所限定的活动。按需根据 [Event](./event.mdx) 的标志字段（`archived`、`published`、`paid`、`onSale`、`deleteAt`）筛选。
-- **使用用户的登录凭证：** 该用户在官网上能看到的活动——所有已归档活动，加上 `published: true` 的未归档活动；如果该用户是本站工作人员或该活动的工作人员，也包括未发布的活动。
+返回所有活动（未归档和已归档的、免费和付费的、已发布和未发布的），或该密钥所限定的活动。按需根据 [Event](./event.mdx) 的标志字段（`archived`、`published`、`paid`、`onSale`、`deleteAt`）筛选。
 
 ## 参数
 
@@ -29,6 +26,10 @@ full: true
 
 ## 错误
 
-只有所有端点都可能返回的错误，见[错误](./errors.mdx)。
+| 状态码 | 错误码 | 何时出现 |
+|---|---|---|
+| 403 | `api-key-required` | 使用了用户的登录凭证（而非服务器 API 密钥）发起调用。 |
+
+以及所有端点都可能返回的错误，见[错误](./errors.mdx)。
 
 </ApiPage>

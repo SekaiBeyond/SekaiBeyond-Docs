@@ -8,7 +8,7 @@ full: true
 
 <ApiPage operation="listTeam">
 
-返回所有 `president`、`core-staff` 和 `staff` 成员，与管理后台列出的方式一致。只有在本站是工作人员及以上的登录用户才能调用。
+返回所有 `president`、`core-staff` 和 `staff` 成员，与管理后台列出的方式一致。需要具备 `team:read` 的服务器 API 密钥。你的应用中谁能查看这份名单，由你的应用决定。
 
 ## 参数
 
@@ -28,8 +28,7 @@ full: true
 
 | 状态码 | 错误码 | 何时出现 |
 |---|---|---|
-| 403 | `sign-in-required` | 使用了服务器 API 密钥（而非用户的登录凭证）发起调用。 |
-| 403 | `not-allowed` | 当前登录用户不是工作人员（`staff`、`core-staff` 或 `president`）。 |
+| 403 | `api-key-required` | 使用了用户的登录凭证（而非服务器 API 密钥）发起调用。 |
 
 以及所有端点都可能返回的错误，见[错误](./errors.mdx)。
 

@@ -1,6 +1,6 @@
 ---
 title: List an event's staff
-description: An event's staff, to staff here and to that event's own staff.
+description: An event's staff, archived or not.
 full: true
 ---
 
@@ -8,7 +8,7 @@ full: true
 
 <ApiPage operation="listEventStaff">
 
-Returns the people assigned as event staff for an event, archived or not. Only a person who is staff (or above) here, or event staff for that event, may call it. That check runs before the event is looked up, so no one else can tell which event IDs exist.
+Returns the people assigned as event staff for an event, archived or not. Needs a server API key with `event-staff:read`, held to that event or to none. That check runs before the event is looked up, so a key held to other events can't tell which event IDs exist. Who in your app may see the list is up to your app.
 
 ## Path parameters
 
@@ -35,8 +35,8 @@ The event's staff, sorted by highest group first, then by `displayName`. Every f
 
 | Status | Code | When |
 |---|---|---|
-| 403 | `sign-in-required` | Called with a server API key instead of a person's sign-in. |
-| 403 | `not-allowed` | The person signed in isn't staff here, and isn't event staff for this event. |
+| 403 | `api-key-required` | Called with a person's sign-in instead of a server API key. |
+| 403 | `event-not-allowed` | The key is held to other events. |
 | 404 | `event-not-found` | No event has this ID. |
 
 Plus the ones every endpoint can return: see [Errors](./errors.mdx).

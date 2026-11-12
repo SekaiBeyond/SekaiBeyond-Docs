@@ -12,7 +12,7 @@ Every integration starts with a registered app (`apps/{appId}`):
 - **App ID** (`appId`): made by the site when the app is registered, as 16 lowercase hex digits such as `3f9c2a7e5b1d8046`. It's used in sign-in links and to keep the app's ticket orders separate from other apps', so it can't change, while the app's name can. **Copy ID** on the app's card copies it.
 - **Name**: shown on the list and when people sign in to the app.
 - **Creator and maintainers**: each app's card shows who registered it (its creator) and who looks after it (its maintainers). Maintainers are accounts on the site, up to five of them, optional, and listed on the sign-in page. The creator is set when the app is registered and needn't be a maintainer.
-- **User sign-in** (optional): redirect URIs, person scopes, Firebase project ID and service account for signing people in at `/authorize` (see [Sign in with Sekai Beyond](./sign-in.mdx)). Leave unticked for a server-only app that only uses API keys.
+- **User sign-in** (optional): redirect URIs, Firebase project ID and service account for signing people in at `/authorize` (see [Sign in with Sekai Beyond](./sign-in.mdx)). Leave unticked for a server-only app that only uses API keys.
 - **Removing an app** stops sign-in to it and revokes and deletes all of its API keys in the same transaction.
 
 ## Server API keys
@@ -22,7 +22,7 @@ On any registered app's card, **+ New Key** creates a server-to-server key under
 - A key is shown once, when it's made. Only its SHA-256 is stored, in `apiKeys`, which no client can read (see [`firestore.rules`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.rules)). A lost key can't be recovered: click **Re-create** on the old key to make a new one with the same settings under the same app, then revoke the old one.
 - **A new key works within a few seconds of being made,** not at once. Until then it answers `invalid-api-key`, so a first call made straight away may need a retry.
 - **Revoking a key deletes it.** It stops working at once and leaves the list, and Records keep its name, its app and its first and last few characters. An expired key gets a Delete button to clear it from the list the same way.
-- Each key has **scopes**: `events:read`, `tickets:write`, `tickets:read`.
+- Each key has **scopes**: `events:read`, `team:read`, `event-staff:read`, `tickets:write`, `tickets:read`.
 - A key can be held to **specific events**, up to 20 of them, archived or not. By default it can use every event.
 - **Orders are kept per app ID** (`appId`). Two apps can each have an order `1001`, and a key only places and reads its own app's orders. Every key created under the same app shares those orders, so a replacement key under the same app finds the orders placed before.
 - Every key **expires**, after one year by default and two years at most.
@@ -39,7 +39,11 @@ On any registered app's card, **+ New Key** creates a server-to-server key under
 | Scope | Lets the key |
 |---|---|
 | `events:read` | [List events](../api-reference/list-events.mdx) and [get an event](../api-reference/get-event.mdx) |
+| `team:read` | [List the team](../api-reference/list-team.mdx) |
+| `event-staff:read` | [List an event's staff](../api-reference/list-event-staff.mdx), for the events the key may use |
 | `tickets:write` | [Create an order](../api-reference/create-order.mdx) |
 | `tickets:read` | [Get an order](../api-reference/get-order.mdx) |
 
-A call without the scope it needs answers `403 missing-scope`. Calling a person route (`/v1/me`, `/v1/team`, `/v1/events/{eventId}/staff`) with a key answers `403 sign-in-required`. One over the rate limit answers `429 rate-limited`, with `Retry-After` saying how many seconds to wait. See [Errors](../api-reference/errors.mdx).
+Keys are how an app reads the site's data: a person's sign-in only says who they are. A key reads as far as its scopes go, whoever is using your app, so who in your app may see what it reads is for your app to decide.
+
+A call without the scope it needs answers `403 missing-scope`. Calling `/v1/me`, which is about the person signed in, with a key answers `403 sign-in-required`, and calling anything else with a person's sign-in answers `403 api-key-required`. One over the rate limit answers `429 rate-limited`, with `Retry-After` saying how many seconds to wait. See [Errors](../api-reference/errors.mdx).

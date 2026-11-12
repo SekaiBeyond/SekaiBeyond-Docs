@@ -8,7 +8,7 @@ full: true
 
 <ApiPage operation="getEvent">
 
-返回单个活动（无论是否已归档），前提是调用方有权查看它（见[列出活动](./list-events.mdx)）。在收款前调用它，确认 `onSale` 仍为 `true`。
+返回单个活动，无论是否已归档、是否已发布。在收款前调用它，确认 `onSale` 仍为 `true`。
 
 ## 路径参数
 
@@ -26,8 +26,9 @@ full: true
 
 | 状态码 | 错误码 | 何时出现 |
 |---|---|---|
+| 403 | `api-key-required` | 使用了用户的登录凭证（而非服务器 API 密钥）发起调用。 |
 | 403 | `event-not-allowed` | 密钥限定于其他活动。 |
-| 404 | `event-not-found` | 没有这个 ID 的活动，或它是当前登录用户无权查看的未发布活动。 |
+| 404 | `event-not-found` | 没有这个 ID 的活动。 |
 
 以及所有端点都可能返回的错误，见[错误](./errors.mdx)。
 

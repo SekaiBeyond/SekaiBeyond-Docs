@@ -5,11 +5,11 @@ description: 让用户使用彼世界账号登录已登记的应用，读取活�
 
 两类调用方使用此 API，都归属于核心成员在管理后台「工具 > 应用」中登记的应用：
 
-- **已登记应用的服务器，使用 API 密钥**（[应用与 API 密钥](./keys.mdx)）：读取所有活动，并为付费活动售票。通过它售出的门票会进入活动的参会者名单，在入口像其他门票一样扫码入场。门票由买家在该应用中持有，不属于官网账号，因此不会出现在官网上任何人的「我的门票」中。订单也可以要求我们把门票通过邮件发给买家。
-- **已登录某个已登记应用的用户，使用该次登录的 ID 令牌**（[使用彼世界账号登录](./sign-in.mdx)）：从该应用的页面（CORS）或服务器发起调用，在应用获授的权限范围内读取该用户在本站的信息、其可见的活动、团队名单以及活动工作人员名单。
+- **已登记应用的服务器，使用 API 密钥**（[应用与 API 密钥](./keys.mdx)）：读取所有活动、团队名单及任意活动的工作人员名单，并为付费活动售票。通过它售出的门票会进入活动的参会者名单，在入口像其他门票一样扫码入场。门票由买家在该应用中持有，不属于官网账号，因此不会出现在官网上任何人的「我的门票」中。订单也可以要求我们把门票通过邮件发给买家。
+- **已登录某个已登记应用的用户，使用该次登录的 ID 令牌**（[使用彼世界账号登录](./sign-in.mdx)）：从该应用的页面（CORS）或服务器调用 [`GET /v1/me`](../api-reference/get-me.mdx)，确认该用户在本站是谁。登录凭证只能读取这些，其余内容都由应用的密钥读取。
 
 <Callout type="warn" title="各方分别决定谁能访问自己持有的数据。">
-  服务器 API 密钥看到的活动与核心成员在管理后台看到的一样，包括未发布的活动，因此密钥只发给我们自己的系统和我们信任的合作方服务器。用户的登录凭证只能看到该用户在官网上能看到的内容，且不超过应用的权限范围；用户在应用内能做什么，由应用自己决定。
+  服务器 API 密钥看到的活动、团队名单和各活动的工作人员名单与核心成员在管理后台看到的一样，包括未发布的活动，因此密钥只发给我们自己的系统和我们信任的合作方服务器。应用内谁能查看密钥读取的内容、用户在应用内能做什么，都由应用自己决定。用户的登录凭证只说明该用户是谁。
 </Callout>
 
 API 的活动包括官网的两类活动：未归档的和已归档的，各自带有官网原有的字段。
@@ -19,10 +19,10 @@ API 的活动包括官网的两类活动：未归档的和已归档的，各自�
 | 端点 | 调用方 | 权限范围 | 作用 |
 |---|---|---|---|
 | [`GET /v1/me`](../api-reference/get-me.mdx) | 登录用户 | — | 获取当前登录用户此刻的信息 |
-| [`GET /v1/team`](../api-reference/list-team.mdx) | 登录用户（工作人员） | `team:read` | 列出社长、核心成员和工作人员 |
-| [`GET /v1/events`](../api-reference/list-events.mdx) | 密钥或登录用户 | `events:read` | 列出活动（密钥可见全部；用户可见其在官网能看到的活动） |
-| [`GET /v1/events/{eventId}`](../api-reference/get-event.mdx) | 密钥或登录用户 | `events:read` | 获取单个活动，例如在收款前再确认一次 |
-| [`GET /v1/events/{eventId}/staff`](../api-reference/list-event-staff.mdx) | 登录用户（工作人员或该活动工作人员） | `event-staff:read` | 列出某个活动的工作人员 |
+| [`GET /v1/team`](../api-reference/list-team.mdx) | 密钥 | `team:read` | 列出社长、核心成员和工作人员 |
+| [`GET /v1/events`](../api-reference/list-events.mdx) | 密钥 | `events:read` | 列出活动（全部，或密钥所限定的活动） |
+| [`GET /v1/events/{eventId}`](../api-reference/get-event.mdx) | 密钥 | `events:read` | 获取单个活动，例如在收款前再确认一次 |
+| [`GET /v1/events/{eventId}/staff`](../api-reference/list-event-staff.mdx) | 密钥 | `event-staff:read` | 列出某个活动的工作人员 |
 | [`POST /v1/events/{eventId}/orders`](../api-reference/create-order.mdx) | 密钥 | `tickets:write` | 订单付款后签发其门票 |
 | [`GET /v1/events/{eventId}/orders/{orderId}`](../api-reference/get-order.mdx) | 密钥 | `tickets:read` | 获取订单，以及每张门票是否已使用 |
 
@@ -38,7 +38,7 @@ API 的活动包括官网的两类活动：未归档的和已归档的，各自�
     登记应用、应用 ID、密钥权限范围、有效期与速率限制。
   </Card>
   <Card title="使用彼世界账号登录" href="./sign-in.mdx">
-    在 `/authorize` 让用户登录你的应用，并调用人员相关端点。
+    在 `/authorize` 让用户登录你的应用，并确认他们是谁。
   </Card>
   <Card title="从中国大陆调用" href="./mainland-china.mdx">
     `api.sekaibeyond.com` 中转，以及它在大陆的可达性。

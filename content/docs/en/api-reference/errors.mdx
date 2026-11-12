@@ -24,9 +24,9 @@ Every endpoint can also return these:
 | 401 | `api-key-expired` | The key has expired. |
 | 401 | `invalid-token` | The ID token has expired (get a fresh one with `getIdToken()`), isn't from a sign-in to a registered app, or its app was removed or had sign-in turned off. |
 | 401 | `session-ended` | The person's sign-ins were ended here after this one was issued: they signed out everywhere or of their other devices, set a new password, or undid an email change. Or their account has been deleted. |
-| 403 | `api-key-required` | Calling an order endpoint with a person's sign-in instead of an API key. |
-| 403 | `sign-in-required` | Calling a person endpoint (`/v1/me`, `/v1/team`, `/v1/events/{eventId}/staff`) with an API key instead of a person's sign-in. |
-| 403 | `missing-scope` | The key or the app lacks the scope the endpoint needs. |
+| 403 | `api-key-required` | Calling any endpoint but `/v1/me` with a person's sign-in instead of an API key. |
+| 403 | `sign-in-required` | Calling `/v1/me` with an API key instead of a person's sign-in. |
+| 403 | `missing-scope` | The key lacks the scope the endpoint needs. |
 | 404 | `not-found` | No such endpoint. |
 | 405 | `method-not-allowed` | Wrong method. The `Allow` header names the right one. |
 | 429 | `rate-limited` | Over 120 calls a minute for a key, or 60 calls a minute for a person in an app. `Retry-After` says how many seconds to wait. |

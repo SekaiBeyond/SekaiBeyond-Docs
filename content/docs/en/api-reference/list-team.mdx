@@ -8,7 +8,7 @@ full: true
 
 <ApiPage operation="listTeam">
 
-Returns everyone in `president`, `core-staff` and `staff`, as the admin panel lists them. Only a person who is staff or above here may call it.
+Returns everyone in `president`, `core-staff` and `staff`, as the admin panel lists them. Needs a server API key with `team:read`. Who in your app may see the list is up to your app.
 
 ## Parameters
 
@@ -28,8 +28,7 @@ Everyone in `president`, `core-staff` and `staff`, sorted by highest group first
 
 | Status | Code | When |
 |---|---|---|
-| 403 | `sign-in-required` | Called with a server API key instead of a person's sign-in. |
-| 403 | `not-allowed` | The person signed in isn't staff (`staff`, `core-staff` or `president`). |
+| 403 | `api-key-required` | Called with a person's sign-in instead of a server API key. |
 
 Plus the ones every endpoint can return: see [Errors](./errors.mdx).
 
