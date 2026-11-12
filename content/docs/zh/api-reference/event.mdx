@@ -40,7 +40,7 @@ description: 官网的两类活动（未归档和已归档）及其字段。
 英文地点，例如房间或楼名。设置 `venueId` 时，为官网显示的场地名称与所选房间（例如 `"Husky Union Building · 214, 250"`）。
 </Param>
 <Param name="locationCn" type="string">
-中文地点。设置 `venueId` 时，使用场地和房间的中文名，缺失的部分逐项回退为英文。
+中文地点；没有中文地点时为英文地点。设置 `venueId` 时，使用场地和房间的中文名，缺失的部分逐项回退为英文。
 </Param>
 <Param name="venueId" type="string">
 活动场地在官网地图和停车指南中的 ID，没有则为 `""`。场地目前还不在 API 中。

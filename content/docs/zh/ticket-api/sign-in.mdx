@@ -138,7 +138,7 @@ function isCoreStaff() {
 }
 
 // 本站某个活动的工作人员，且仅在活动进行期间。规则无法读取官网，因此由你的服务器
-// 用应用的密钥把每个活动的开始和结束时间（GET /v1/events）及其工作人员
+// 用应用的密钥把每个活动的开始和结束时间（GET /v1/events，存为时间戳）及其工作人员
 // （GET /v1/events/{eventId}/staff）复制到你自己的数据库中。
 function staffsDuring(eventId) {
   let event = get(/databases/$(database)/documents/events/$(eventId)).data;

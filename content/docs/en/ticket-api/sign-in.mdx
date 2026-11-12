@@ -138,7 +138,7 @@ function isCoreStaff() {
 }
 
 // Staff of an event here, while it runs. Rules can't read the site, so your server
-// copies each event's start and end (GET /v1/events) and its staff
+// copies each event's start and end (GET /v1/events), as timestamps, and its staff
 // (GET /v1/events/{eventId}/staff) into your own database with the app's key.
 function staffsDuring(eventId) {
   let event = get(/databases/$(database)/documents/events/$(eventId)).data;

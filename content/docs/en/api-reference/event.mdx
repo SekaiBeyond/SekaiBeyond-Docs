@@ -40,7 +40,7 @@ Chinese description. When it's `""`, the site shows `description` instead.
 English location, such as a room or building. When `venueId` is set, this is the venue's name and selected rooms as shown on the site (for example, `"Husky Union Building · 214, 250"`).
 </Param>
 <Param name="locationCn" type="string">
-Chinese location. When `venueId` is set, uses the venue's and rooms' Chinese names, falling back to English piece by piece.
+Chinese location, or the English one when there's none. When `venueId` is set, uses the venue's and rooms' Chinese names, falling back to English piece by piece.
 </Param>
 <Param name="venueId" type="string">
 The ID of the event's venue on the site's map and parking guide, or `""` for none. Venues aren't in the API yet.

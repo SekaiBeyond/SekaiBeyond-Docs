@@ -3,7 +3,7 @@ title: Ticket Email (Resend)
 description: Delivering paid event ticket emails through Resend.
 ---
 
-Paid event ticket emails are delivered through **[Resend](https://resend.com)**. The `sendTicketEmails` and `scheduledMailDrain` Cloud Functions call the Resend API directly (the batch endpoint). Resend's free tier (3,000/mo, 100/day) covers the project's expected ~1,000 emails/month with headroom for event-day bursts, and its DNS setup plays cleanly with Cloudflare.
+Ticket emails, and account emails such as sign-up and password codes, are delivered through **[Resend](https://resend.com)**. The functions call the Resend API directly, `sendTicketEmails` and `scheduledMailDrain` through its batch endpoint. Resend's free tier (3,000/mo, 100/day) covers the project's expected ~1,000 emails/month with headroom for event-day bursts, and its DNS setup plays cleanly with Cloudflare.
 
 ## 1. Set up Resend and verify the domain
 
@@ -40,6 +40,6 @@ Then, after deploying Functions, send a real ticket email from the **Admin Panel
 
 ## Overflow queue
 
-Sends past Resend's 100/day cap are written to a `scheduledMail` collection and drained by the `scheduledMailDrain` scheduled function every 30 minutes as quota frees up. No setup needed — it deploys with the other functions.
+Of Resend's 100 emails a day, ticket and passport sends may use 80: the other 20 are held back for account emails, so a big send can't stop someone getting a sign-up code, which can't wait in a queue. Ticket and passport sends past their 80 are written to a `scheduledMail` collection and drained by the `scheduledMailDrain` scheduled function every 30 minutes as quota frees up. No setup needed — it deploys with the other functions.
 
-The daily cap, send chunk size and queue cap are set with `RESEND_DAILY_CAP`, `SEND_CHUNK_SIZE` and `RESEND_QUEUE_CAP` in the functions' dotenv files (see [Step 12 of setup](./deploy.mdx#1-firebase-project)).
+The daily cap, the part of it held back for account emails, the send chunk size and the queue cap are set with `RESEND_DAILY_CAP`, `ACCOUNT_MAIL_RESERVE`, `SEND_CHUNK_SIZE` and `RESEND_QUEUE_CAP` in the functions' dotenv files (see [Step 12 of setup](./deploy.mdx#1-firebase-project)).
