@@ -37,7 +37,7 @@ full: true
 |---|---|---|
 | 400 | `invalid-request` | 请求体不是带有格式正确的 `code` 和 `codeVerifier` 的 JSON 对象。 |
 | 400 | `invalid-code` | 登录码不存在、已用过、已过期，或 verifier 不对；从与登录码交回的源不同的页面发送；或应用已被移除、已关闭用户登录，或不再登记该回调地址。请让用户重新前往 `/authorize`。 |
-| 401 | `session-ended` | 登录码签发后，该用户在本站的登录已被终止，或其账号已被删除。 |
+| 401 | `session-ended` | 登录码签发后，该用户在本站的登录已被终止（封禁也会如此），或其账号已被删除。 |
 | 500 | `sign-in-failed` | 主站无法以应用的服务账号签名令牌，多半是应用的项目尚未授予 Service Account Token Creator（见[授予 IAM 角色](../ticket-api/sign-in.mdx#在应用的项目上授予-iam-角色)）。 |
 
 以及任何端点都可能返回的 `404`、`405` 和 `500 internal`，见[错误](./errors.mdx)。其中与 `Authorization` 有关的错误不适用于此端点。

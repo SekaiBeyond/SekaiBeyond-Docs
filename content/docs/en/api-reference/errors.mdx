@@ -23,7 +23,7 @@ Every endpoint can also return these, apart from the `Authorization` ones for [`
 | 401 | `invalid-api-key` | The key isn't one of ours, or has been revoked. |
 | 401 | `api-key-expired` | The key has expired. |
 | 401 | `invalid-token` | The ID token has expired (get a fresh one with `getIdToken()`), isn't from a sign-in to a registered app, or its app was removed or had sign-in turned off. |
-| 401 | `session-ended` | The person's sign-ins were ended here after this one was issued: they signed out everywhere or of their other devices, set a new password, or undid an email change. Or their account has been deleted. |
+| 401 | `session-ended` | The person's sign-ins were ended here after this one was issued: they signed out everywhere or of their other devices, set a new password, or undid an email change, or they were banned. Or their account has been deleted. |
 | 403 | `api-key-required` | Calling any endpoint but `/v1/me` and `/v1/token` with a person's sign-in instead of an API key. |
 | 403 | `sign-in-required` | Calling `/v1/me` with an API key instead of a person's sign-in. |
 | 403 | `missing-scope` | The key lacks the scope the endpoint needs. |

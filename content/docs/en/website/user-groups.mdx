@@ -1,6 +1,6 @@
 ---
 title: User Groups
-description: Roles, admin access, event staff, the first president, and membership.
+description: Roles, admin access, event staff, the first president, membership, and bans.
 ---
 
 The site uses a role-based group system instead of a simple admin flag. `group` is a pure role ladder — users are assigned one of the following (lowest to highest):
@@ -31,3 +31,9 @@ Once the first president is set up, they can assign groups to other users throug
 ## Membership
 
 **Membership** is separate from `group`. It is a time-boxed attribute, `users/{uid}.membershipExpiresAt`, and someone is a member exactly while that timestamp is in the future. Any group can hold one, so a `president` can be a member too, and membership never promotes or demotes anyone. Core-staff and above grant, extend, or revoke it from the Users tab of the admin panel; every change is audited in Records. There is no scheduled job — membership lapses by timestamp comparison.
+
+## Banning
+
+A **ban** keeps an account from signing in, to the site or to any app that signs people in through it. Core-staff and above ban someone from the **Ban** section of their page in the Users tab, under the same rule as assigning groups: core-staff can ban `user` and `staff`, the president anyone, and nobody themselves. A ban lasts a number of days, until a chosen date (the end of that day, Pacific time), or until it's lifted, and can carry a reason that only staff see. Every ban and lift is audited in Records.
+
+Banning takes effect at once. Every device on the account is signed out, as is every app sign-in (`/api/v1` answers `401 session-ended`), and the account's Firebase Auth record is disabled. Signing in with the right password or a bound Google account then says the account is banned, and until when; a wrong password still says only that it's wrong. The ban lives on the user document (`bannedAt`, `bannedUntil`, `banReason`, `bannedBy`, `bannedByName`), and like membership there's no scheduled job: a ban that has run out is cleared the next time the account signs in. A ban doesn't change the person's group, membership or profile, and doesn't stop anyone making a new account with another address.

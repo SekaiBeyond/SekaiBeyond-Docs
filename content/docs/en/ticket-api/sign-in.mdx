@@ -129,6 +129,7 @@ The claims are as of the sign-in. When the person's group changes, they're signe
 Every call with a sign-in re-reads the person's account here:
 
 - **Signing out everywhere, signing out other devices, setting a new password (changed or reset), or undoing an email change** immediately causes `/api/v1` to refuse tokens from before that moment with `401 session-ended`. It also revokes the person's refresh tokens in your app's Firebase project, so their sign-in there ends once its current ID token expires, within the hour.
+- **Banning an account** works as signing out everywhere does, at once, and the person can't sign in to the site or any app again until the ban runs out or is lifted.
 - **Deleting an account** takes effect when the account is removed, at least 48 hours after deletion is requested, unless that's cancelled. From then `/api/v1` answers `401 session-ended`, and the user is deleted from your app's Firebase project.
 - **Changing a person's group** signs them out of every app. Their refresh tokens in your app's project are revoked: their sign-in there ends once its current ID token expires, within the hour, and they sign in again with the new group. `/v1/me` returns the change at once, and `/api/v1` keeps accepting their current sign-in. Changing only their title, or which events they staff, changes no claim and signs no one out.
 - **Turning off an app's sign-in or removing the app** reaches `/api/v1` within 10 seconds.

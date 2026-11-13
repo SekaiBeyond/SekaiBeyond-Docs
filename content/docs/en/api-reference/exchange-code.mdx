@@ -37,7 +37,7 @@ The code verifier you made for this sign-in, whose base64url SHA-256 you sent to
 |---|---|---|
 | 400 | `invalid-request` | The body isn't a JSON object with a well-formed `code` and `codeVerifier`. |
 | 400 | `invalid-code` | The code is unknown, used, expired or offered with the wrong verifier; it was sent from a page on another origin than the one it was handed to; or the app was removed, had sign-in turned off, or no longer lists that redirect URI. Send the person to `/authorize` again. |
-| 401 | `session-ended` | The person's sign-ins were ended here after the code was issued, or their account has been deleted. |
+| 401 | `session-ended` | The person's sign-ins were ended here after the code was issued, as banning them does, or their account has been deleted. |
 | 500 | `sign-in-failed` | The site couldn't sign the token as the app's service account, most likely because the app's project hasn't granted Service Account Token Creator (see [Grant IAM roles](../ticket-api/sign-in.mdx#grant-iam-roles-on-the-apps-project)). |
 
 Plus `404`, `405` and `500 internal`, as any endpoint can return: see [Errors](./errors.mdx). The `Authorization` errors there don't apply here.
