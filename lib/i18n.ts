@@ -1,7 +1,7 @@
 import { defineI18n } from 'fumadocs-core/i18n';
 
 // Pages live in content/docs/<lang>/. A page missing from zh falls back to en,
-// so the website contributor docs, written in English only, show in both.
+// so a page not yet translated still shows in both.
 export const i18n = defineI18n({
     languages: ['en', 'zh'],
     defaultLanguage: 'en',

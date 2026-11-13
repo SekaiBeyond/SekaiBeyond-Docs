@@ -1,0 +1,15 @@
+{
+  "title": "官网开发",
+  "description": "构建与运行 sekaibeyond.com",
+  "root": true,
+  "pages": [
+    "index",
+    "emulators",
+    "deploy",
+    "email",
+    "app-check",
+    "firestore",
+    "user-groups",
+    "api-relay"
+  ]
+}

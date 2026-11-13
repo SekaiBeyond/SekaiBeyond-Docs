@@ -1,0 +1,57 @@
+---
+title: Firestore 索引与 TTL 策略
+description: 应用所需的复合索引和 TTL 策略。
+---
+
+两者都定义在 [`firestore.indexes.json`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.indexes.json) 中，并一起部署：每次推送到 `main` 时自动部署，也可以手动部署：
+
+```bash
+firebase deploy --only firestore:indexes
+```
+
+## 复合索引
+
+按多个字段过滤的查询需要 Firestore 复合索引。每个索引都是一张按字段顺序排好序的表，查询可以直接定位（O(1)），而不必扫描整个集合（O(n)）。没有它们，这些查询会以 `missing index` 错误失败。缺少索引时，浏览器中的错误还会附上创建该索引的页面链接。
+
+模拟器不强制要求复合索引，所以 `firestore.indexes.json` 中缺少的查询在 `npm run dev` 下能用，但在生产环境中会失败。
+
+应用目前需要 8 个复合索引：
+
+| 集合 | 字段 | 用途 |
+|---|---|---|
+| `attendees` | `[emailSent, createdAt]` | 管理后台门票面板：查询未发送的参会者，以便批量发送门票邮件 |
+| `badgeActivationCodes` | `[badgeId, createdAt desc]` | 管理后台：加载某个徽章的激活码 |
+| `records` | `[type, timestamp desc]` | 按类型查看操作记录 |
+| `records` | `[performedBy, timestamp desc]` | 按用户查看操作记录 |
+| `records` | `[type, performedBy, timestamp desc]` | 按类型和用户筛选操作记录 |
+| `upcomingEvents` | `[published, startAt]` | 公开列出已发布的即将举行的活动，按开始时间排序 |
+| `users` | `[group, joinedAt desc]` | 管理后台：按用户组列出用户，最新的在前 |
+| `users` | `[group, membershipExpiresAt desc]` | 管理后台：列出某个用户组中的现有会员，到期最晚的在前 |
+
+## TTL 策略
+
+应用依靠基于 TTL 的自动过期来实现速率限制、审计日志保留、用户/活动/徽章的延迟删除，清理过期的领取码/激活码/邮件验证码、邮箱更改撤销链接和应用登录码，以及扫码记录保留和按客户端的扫码配额。需要十三项 TTL 策略：
+
+| 集合                    | 字段        | 用途                                                               |
+|-------------------------|-------------|--------------------------------------------------------------------|
+| `rateLimits`            | `expiresAt` | 清理速率限制窗口                                                   |
+| `records`               | `expiresAt` | 审计日志保留（30 天）                                              |
+| `claimCodes`            | `expiresAt` | 活动领取码过了有效期后自动过期                                     |
+| `badgeActivationCodes`  | `expiresAt` | 徽章激活码过了有效期后自动过期                                     |
+| `emailCodes`            | `expiresAt` | 6 位数的邮箱注册、密码重置和邮箱更改验证码自动过期                 |
+| `emailUndos`            | `expiresAt` | 邮箱更改撤销链接自动过期（48 小时）                                |
+| `appSignInCodes`        | `expiresAt` | 清理 `/authorize` 交给应用、但未被兑换的登录码（2 分钟）           |
+| `users`                 | `deleteAt`  | 账号删除的 48 小时冷静期                                           |
+| `pastEvents`            | `deleteAt`  | 往期活动删除的 48 小时冷静期                                       |
+| `upcomingEvents`        | `deleteAt`  | 即将举行的活动删除的 48 小时冷静期                                 |
+| `badges`                | `deleteAt`  | 徽章删除的 48 小时冷静期                                           |
+| `scans`                 | `expiresAt` | 二维码扫码记录保留（365 天）                                       |
+| `scanQuota`             | `expiresAt` | 按客户端的扫码配额窗口（保留两个窗口的宽限期）                     |
+
+全部十三项都以带 `"ttl": true` 的 `fieldOverrides` 定义（另外还有两项非 TTL 的集合组字段覆盖：`attendees.email` 和 `attendees.ticketIds`）。每项覆盖还列出了该字段的升序、降序和 array-contains 索引。覆盖会替换字段的默认索引，而不是在其上追加，所以漏掉它们会使该字段不再被索引，导致管理后台「用户管理」标签页的 `where('deleteAt', '!=', null)` 等查询失败。新增 TTL 字段时请保留它们。
+
+<Callout type="warn" title="注意">
+  Firestore TTL 需要 **Blaze 方案**（按用量付费），免费的 Spark 方案不支持。
+</Callout>
+
+没有这些策略，速率限制条目和审计日志会无限累积，删除冷静期也永远不会触发清理函数。

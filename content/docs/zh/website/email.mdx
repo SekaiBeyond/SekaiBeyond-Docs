@@ -1,0 +1,45 @@
+---
+title: 门票邮件（Resend）
+description: 通过 Resend 发送付费活动的门票邮件。
+---
+
+门票邮件，以及注册和密码验证码等账号邮件，都通过 **[Resend](https://resend.com)** 发送。函数直接调用 Resend API，其中 `sendTicketEmails` 和 `scheduledMailDrain` 使用它的批量发送端点。Resend 的免费套餐（每月 3,000 封、每天 100 封）足以覆盖项目预计每月约 1,000 封的用量，并为活动当天的高峰留有余量；它的 DNS 设置也能与 Cloudflare 顺畅配合。
+
+## 1. 设置 Resend 并验证域名
+
+1. 在 [resend.com](https://resend.com) 注册并确认你的账号邮箱。
+2. 进入 **Domains** > **Add Domain**，输入官网的域名（这里是 `sekaibeyond.com`），按照 Resend 页面上的 DNS 设置说明操作：它会自动识别 Cloudflare，并可以通过 OAuth 为你创建 MX/SPF/DKIM/DMARC 记录。控制台全部显示绿色后，点击 **Verify DNS Records**。它必须是 `PUBLIC_ORIGIN` 的主机名（见[设置第 12 步](./deploy.mdx#1-firebase-项目)），因为所有邮件都从这个域名发出。
+3. 进入 **API Keys** > **Create API Key**，命名为 `sekaibeyond-functions`，授予 **Full access**，然后复制密钥（以 `re_` 开头）。之后将无法再查看它。*Sending access* 不够：管理后台的「邮件额度」工具和发送流程中的每日上限检查，都通过读取 Resend 的已发送邮件日志（`GET /emails`）统计用量，而仅限发送的密钥无权读取。使用这种密钥时，该工具会显示用量不可用，上限检查则会退回到缓存的计数。完全访问权限的密钥可以管理整个 Resend 账号，请像保护账号密码一样保护它。
+
+<Callout title="Cloudflare Email Routing">
+  如果 `sekaibeyond.com` 的收件也由 Cloudflare Email Routing 处理，请保留根域名（`sekaibeyond.com`）上现有的 MX 记录不变：Resend 的 MX 位于 `send.` 子域名上，不会冲突。
+</Callout>
+
+## 2. 将 API 密钥存为 Functions secret
+
+函数通过 `defineSecret("RESEND_API_KEY")` 读取密钥，它经由 **Google Secret Manager** 解析，*而不是* `.env` 文件。只需设置一次：
+
+```bash
+firebase functions:secrets:set RESEND_API_KEY
+```
+
+出现提示时，粘贴第 1 步中的 `re_…` 密钥。部署邮件相关函数之前，这个 secret 必须已经存在：
+
+- **手动部署：** 如果 secret 不存在，`firebase deploy --only functions` 会以交互方式提示你创建。
+- **CI 部署：** GitHub Actions 工作流是非交互式的：请在这份代码第一次通过 CI 部署*之前*运行上面的命令，否则部署会失败。之后 CI 会自动复用已保存的 secret，只有轮换密钥时才需要重新运行该命令。部署用的服务账号还需要 **Secret Manager Admin** 角色（`roles/secretmanager.admin`）：**Firebase Admin** 和 **Cloud Functions Admin** 都*不*包含它，必须单独授予（见 [GitHub 仓库 Secrets](./deploy.mdx#2-github-仓库-secrets)）。没有它，部署到绑定了 secret 的函数时会以 `403 Permission 'secretmanager.secrets.get' denied` 失败。部署需要的是 *Admin* 而不只是 *Viewer*，因为 CLI 还会设置一项 IAM 绑定，授予函数运行时的服务账号访问该 secret 的权限。
+
+**发件地址**为 `<前缀>@<官网域名>`。域名是 `PUBLIC_ORIGIN` 的主机名（见[设置第 12 步](./deploy.mdx#1-firebase-项目)）去掉开头的 `www.`，因此它必须是你在 Resend 中验证过的域名。管理员在「网站配置 > 发件邮箱」中设置前缀，无需部署，下一封邮件即生效。前缀为空时，邮件从该域名的 `no-reply@` 发出。
+
+门票邮件不设置回复地址，所以回复会发到发件地址。如果该域名的收件由 Cloudflare Email Routing 处理，除非有路由规则（或全部捕获规则）转发该地址，否则回复给 `no-reply@` 的邮件会被退回。
+
+## 3. 发送测试邮件
+
+先设置「网站配置 > 联系邮箱」。默认门票模板用它填充 `{{ contactEmail }}`，用于“联系我们”一行及其 `mailto:` 链接；模板用到它而它为空时，发送会被拒绝。
+
+然后在部署 Functions 之后，从**管理后台**发送一封真实的门票邮件，并在 Resend 控制台的 **Logs** 标签页中交叉核对，那里会显示退信、被抑制的地址和 DKIM 失败。另一个信号是：函数会把 Resend 的每日用量缓存在 Firestore 文档 `system/resendQuota` 中，发送后那里出现了 `confirmed` 计数，就说明函数正在从 Resend 读回用量。
+
+## 溢出队列
+
+Resend 每天的 100 封邮件中，门票和通行证邮件最多可以使用 80 封：其余 20 封留给账号邮件，这样一次大批量发送就不会让别人收不到注册验证码，而验证码是不能排队等待的。门票和通行证邮件超出 80 封的部分会写入 `scheduledMail` 集合，由定时函数 `scheduledMailDrain` 每 30 分钟在额度释放时发出。无需设置：它会和其他函数一起部署。
+
+每日上限、其中为账号邮件预留的数量、发送分块大小和队列上限，分别由函数 dotenv 文件中的 `RESEND_DAILY_CAP`、`ACCOUNT_MAIL_RESERVE`、`SEND_CHUNK_SIZE` 和 `RESEND_QUEUE_CAP` 设置（见[设置第 12 步](./deploy.mdx#1-firebase-项目)）。

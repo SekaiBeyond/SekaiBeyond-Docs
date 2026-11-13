@@ -1,0 +1,160 @@
+---
+title: 部署
+description: 首次设置 Firebase、GitHub Secrets 与部署工作流。
+---
+
+推送到 `main` 时，GitHub Actions 会自动把官网部署到 Firebase Hosting。
+
+## 首次设置
+
+### 1. Firebase 项目
+
+<Callout title="提示">
+  下面的第 5–9 步（规则、索引、存储、函数、TTL 策略）会在每次推送到 `main` 时由 GitHub Actions 工作流自动重新应用。只有在初次设置项目或 CI 不可用时，才需要手动执行它们。
+</Callout>
+
+1. 打开 [console.firebase.google.com](https://console.firebase.google.com) 并创建项目
+2. 添加一个 **Web 应用**，复制 Firebase 配置值：之后要把它们填入 CI 用的 [GitHub Secrets](#2-github-仓库-secrets)，以及让开发服务器连接生产环境时用的 [`.env`](#3-本地开发)
+3. 配置 **Authentication**：
+   - 为「使用 Google 登录」按钮创建或复制 Web OAuth 客户端 ID（GitHub Secrets 和 `.env` 中的 `VITE_GOOGLE_CLIENT_ID`，以及本地部署时 `functions/.env` 中的 `GOOGLE_CLIENT_ID`）。
+   - 把 Functions secret `PASSWORD_PEPPER` 设为一个足够长的随机字符串，只设一次（`firebase functions:secrets:set PASSWORD_PEPPER`）；以后更改它会使所有密码失效。
+   - 为默认计算服务账号（`PROJECT_NUMBER-compute@developer.gserviceaccount.com`）授予其自身的 **Service Account Token Creator** 角色（`roles/iam.serviceAccountTokenCreator`），并启用 IAM Service Account Credentials API（`iamcredentials.googleapis.com`），让登录函数能签发 Firebase 自定义令牌：
+
+     ```bash
+     gcloud iam service-accounts add-iam-policy-binding PROJECT_NUMBER-compute@developer.gserviceaccount.com --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" --role="roles/iam.serviceAccountTokenCreator" --project=PROJECT_ID
+     ```
+4. 创建 **Cloud Firestore** 数据库（选择较近的区域）
+5. 设置 Firestore **安全规则**：把 [`firestore.rules`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.rules) 的内容复制到 Firestore 规则编辑器中
+6. 部署所需的**复合索引**：
+   - 首次使用应用时，点击浏览器错误中给出的索引创建链接，**或者**
+   - 用 `firebase deploy --only firestore:indexes` 部署 [`firestore.indexes.json`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.indexes.json) 中定义的索引
+
+   没有这些复合索引，某些查询会因 `missing index` 错误而失败。每个索引的用途见[复合索引](./firestore.mdx#复合索引)。
+
+7. 部署 **Storage 规则**：把 [`storage.rules`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/storage.rules) 的内容复制到 Storage 规则编辑器中，或通过 `firebase deploy --only storage` 部署
+
+   这些规则允许公开读取各资源文件夹（`avatars/`、`banners/`、`events/`、`badges/` 等），并拒绝所有客户端写入。应用并不依赖它们：浏览器从不使用 Storage SDK，上传都经过 Cloud Functions（Admin SDK 不受规则约束），图片则通过带令牌的下载 URL 加载，同样绕过规则。这些规则的作用是阻止任何人直接写入存储桶。
+
+8. 部署 **Cloud Functions**：应用的所有数据修改都通过可调用的 Cloud Functions 和 Firestore 触发函数完成（创建用户资料、管理操作、徽章/活动管理、图片上传、票务、由 TTL 触发的删除等）。没有它们，整个应用都无法使用：
+
+   ```bash
+   npm --prefix functions install
+   npm run deploy:functions
+   ```
+
+   它会构建 functions，并以每批 40 个、每批间隔一分钟的方式部署。函数有一百多个，首次部署时它们全是新的，用一条 `firebase deploy --only functions` 全部部署会超出 Cloud Functions 每分钟的变更限制。
+
+9. 配置 **Firestore TTL 策略**：应用依靠基于 TTL 的自动过期来实现速率限制、审计日志保留、用户/活动/徽章的延迟删除，清理过期的领取码/激活码/邮件验证码、邮箱更改撤销链接和应用登录码，以及扫码记录保留和按客户端的扫码配额。全部十三项策略都定义在 [`firestore.indexes.json`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.indexes.json) 中，因此会随索引一起部署：
+
+   ```bash
+   firebase deploy --only firestore:indexes
+   ```
+
+   <Callout type="warn" title="注意">
+     Firestore TTL 需要 **Blaze 方案**（按用量付费），免费的 Spark 方案不支持。
+   </Callout>
+
+   每项策略的用途，以及新增策略时需要保留的内容，见 [TTL 策略](./firestore.mdx#ttl-策略)。
+
+10. 配置**外发邮件（Resend）和电子钱包票券（WalletWallet）**：门票邮件和账号邮件通过 [Resend](https://resend.com) 发送；按照[门票邮件](./email.mdx)验证域名、创建 API 密钥，并将其存为 Functions secret `RESEND_API_KEY`。Apple/Google 钱包票券（`{PUBLIC_ORIGIN}/api/wallet-pass`）使用 [WalletWallet](https://walletwallet.dev)；用 `firebase functions:secrets:set WALLETWALLET_API_KEY` 保存它的 API 密钥。CI 部署是非交互式的，所以函数绑定的 secret（`RESEND_API_KEY`、`PASSWORD_PEPPER`、`WALLETWALLET_API_KEY`）必须在第一次 CI 部署之前就已存在，否则部署会失败。
+
+11. 配置 **Firebase App Check**：应用用 reCAPTCHA v3 初始化 App Check，保护 Firestore、Storage 和可调用函数免受未授权客户端访问。在 Firebase 控制台中强制执行之前，请先按照 [App Check](./app-check.mdx) 完成设置：未完成设置就强制执行，所有读写都会以 `FirebaseError: Missing or insufficient permissions` 失败。
+
+12. 为分叉项目覆盖 `PUBLIC_ORIGIN`：`sendTicketEmails` 发出的门票邮件嵌入了来自 `{PUBLIC_ORIGIN}/api/ticket-qr` 的二维码图片，`serveTicketQr` 会把门票领取 URL（`{PUBLIC_ORIGIN}/claim?ticket=X&event=Y`）编码进每张图片。它的主机名去掉开头的 `www.` 后，也是所有邮件的发件域名（见[门票邮件](./email.mdx)）。不设置的话，分叉项目发出的二维码会指向原站（`https://sekaibeyond.com`，即源代码中的默认值，见 `functions/src/utils/config.ts`）而不是自己的部署，发件人也会被 Resend 拒绝。
+
+    函数在运行时读取 `process.env.PUBLIC_ORIGIN`。在 `functions/` 下的 dotenv 文件中设置它：
+
+    - **按项目的 dotenv（推荐）：** 创建 `functions/.env.<project-id>`（例如 `functions/.env.sekaibeyond-fc616`，后缀取自 `.firebaserc`），内容为 `PUBLIC_ORIGIN=https://your-site.example.com`。Firebase 只在部署到该项目时加载它，因此这些值不会泄漏到其他环境。
+    - **通用 dotenv：** `functions/.env` 适用于这个仓库部署到的所有项目。
+
+    然后重新部署 Functions，使新值生效：
+
+    ```bash
+    firebase deploy --only functions
+    ```
+
+    同样的方式也适用于以下可选设置：`RESEND_DAILY_CAP`（默认 100）、`ACCOUNT_MAIL_RESERVE`（默认 20）、`NOTICE_MAIL_RESERVE`（默认 10）、`CODE_MAIL_HOURLY_CAP`（默认 20）、`SEND_CHUNK_SIZE`（默认 100）、`RESEND_QUEUE_CAP`（默认 500）、`WALLET_PASS_MONTHLY_CAP`（默认 1000）、`WALLET_PASS_DAILY_CAP_PER_TICKET`（默认 2）、`WALLET_PASS_ORGANIZATION`（默认 `Sekai Beyond`）、`IMPORT_MAX_ROWS`（默认 1000）、`MAX_UPLOAD_SIZE_MB`（默认 10）、`MAX_VIDEO_UPLOAD_SIZE_MB`（默认 20），以及 `SCAN_CLIENT_SALT`。这个盐值在源代码中有后备值，所以请设置你自己的值，以免同时拿到源代码和数据库导出的人反推出哈希后的扫码客户端标识。`functions/.env.example` 对每一项都有说明。注意，`RESEND_API_KEY`、`PASSWORD_PEPPER` 和 `WALLETWALLET_API_KEY` *不*在 dotenv 中设置：它们是 Secret Manager 中的 secret，通过 `firebase functions:secrets:set` 设置。
+
+13. **地图无需设置。** 「停车指南」和管理后台中的地图（「场地管理」地图、场地和二维码位置的地图选点器，以及二维码位置地图）用 MapLibre GL 绘制 [OpenFreeMap](https://openfreemap.org) 提供的 OpenStreetMap 数据瓦片：无需密钥，不收费，也没有请求限制。地图选点器的地点搜索使用 OpenStreetMap 的 [Nominatim](https://nominatim.org/release-docs/latest/api/Search/)，其使用政策允许在用户发起搜索时调用（每秒最多一次，不允许边输入边搜索），选点器正是这样使用的。
+
+    <Callout title="停车数据">
+      停车场详情、UW 的活动停车日和步行时间来自 UW Transportation Services 和 OpenStreetMap。定时函数 `uwParkingNightlySync` 每天太平洋时间下午 5:30 把它们复制到 `uwParking/current`；它会和其他函数一起部署，不需要任何密钥。要在首次部署后立即填充数据，在 [Cloud Scheduler](https://console.cloud.google.com/cloudscheduler) 中对它的任务使用 **Force run**。
+    </Callout>
+
+    `firebase.json` 中的 CSP 头已经允许地图所需的一切：`img-src` 和 `connect-src` 中的 `https://tiles.openfreemap.org`（瓦片、字体和图标），`connect-src` 中的 `https://nominatim.openstreetmap.org`（地点搜索），以及供 MapLibre worker 使用的 `worker-src 'self'`，构建时会把该 worker 打包为同源文件。如果你添加其他第三方脚本，请相应扩展该头：部署时运行的 `npm run update-csp-hashes` 只会重写 `script-src` 中内联脚本的 `sha256-` 哈希，其他来源都会原样保留。
+
+### 2. GitHub 仓库 Secrets
+
+打开仓库的 **Settings** > **Secrets and variables** > **Actions**，添加以下 secret：
+
+| Secret                              | 值                                  |
+|-------------------------------------|-------------------------------------|
+| `VITE_FIREBASE_API_KEY`             | 你的 Firebase API key               |
+| `VITE_FIREBASE_AUTH_DOMAIN`         | `your-project.firebaseapp.com`      |
+| `VITE_FIREBASE_PROJECT_ID`          | 你的项目 ID                         |
+| `VITE_FIREBASE_STORAGE_BUCKET`      | `your-project.firebasestorage.app`  |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | 你的 sender ID                      |
+| `VITE_FIREBASE_APP_ID`              | 你的 app ID                         |
+| `VITE_RECAPTCHA_SITE_KEY`           | reCAPTCHA v3 网站密钥（App Check）  |
+| `VITE_GOOGLE_CLIENT_ID`             | Web OAuth 客户端 ID（Google 登录）  |
+| `FIREBASE_SERVICE_ACCOUNT`          | 服务账号 JSON（见下文）             |
+
+`VITE_*` secret 会在构建时作为环境变量注入（`VITE_GOOGLE_CLIENT_ID` 还会以 `GOOGLE_CLIENT_ID` 写入 `functions/.env`）。`FIREBASE_SERVICE_ACCOUNT` 用于部署步骤的身份验证。
+
+<Callout title="提示">
+  `.firebasestorage.app` 后缀是 2024 年 10 月之后创建的 Firebase 项目的默认值。较早的项目使用 `.appspot.com`：以 Firebase 控制台中显示的存储桶格式为准。
+</Callout>
+
+**生成 `FIREBASE_SERVICE_ACCOUNT`：**
+
+1. 打开 [Google Cloud Console](https://console.cloud.google.com) 并选择你的 Firebase 项目
+2. 进入 **IAM & Admin** > **Service Accounts** > **Create Service Account**
+3. 命名为类似 `github-actions-deploy` 的名称
+4. 授予以下角色：
+   - **Firebase Admin**（范围广，最简单），或者更精细地授予：**Firebase Hosting Admin**、**Cloud Functions Admin**、**Firebase Rules Admin**、**Storage Admin**
+   - **Secret Manager Admin**（`roles/secretmanager.admin`）：部署绑定了 secret 的函数时必需，Firebase Admin 不包含它（见[门票邮件](./email.mdx#2-将-api-密钥存为-functions-secret)）
+   - **Cloud Scheduler Admin**（`roles/cloudscheduler.admin`）：创建和更新 `scheduledMailDrain` 和 `uwParkingNightlySync` 这两个定时函数背后的 Cloud Scheduler 任务时必需，Firebase Admin 和 Cloud Functions Admin 都不包含它。没有它，更改函数调度的部署会以 `403 ... lacks IAM permission "cloudscheduler.jobs.update"` 失败。
+   - **Service Account User**
+5. 创建后打开该服务账号，进入 **Keys** 标签页，点击 **Add Key** > **Create new key** > **JSON**，下载文件
+6. 把整个文件的内容粘贴为 GitHub 中 `FIREBASE_SERVICE_ACCOUNT` secret 的值
+
+### 3. 本地开发
+
+`npm run dev` 让官网连接 [Firebase Local Emulator Suite](https://firebase.google.com/docs/emulator-suite)，绝不连接生产环境，也不需要 `.env`。如何运行模拟器、以管理员身份登录，以及与生产环境的不同，见[使用模拟器测试](./emulators.mdx)。
+
+**连接生产环境。** `npm run dev:prod` 使用 `.env` 中的配置，让官网连接真实项目。它做出的每项更改都会立即生效，发送门票也会真的发邮件给参会者，所以只在模拟器做不到时才使用它，例如真实的 Google 登录、App Check 或生产数据。先把 `.env.example` 复制为 `.env`，再填入与 GitHub Secrets 相同的 Firebase 配置值：
+
+```bash
+cp .env.example .env
+```
+
+### 4. 第一位社长
+
+管理权限来自每个用户的 `group`，而新部署还没有任何管理员。登录后，在 Firebase 控制台中把你的 `users` 文档的 `group` 设为 `president`：见[设置第一位社长](./user-groups.mdx#设置第一位社长)。之后由该账号在**管理后台**中为其他人分配用户组。
+
+## 部署工作流
+
+推送到 `main` 会触发 GitHub Actions 工作流（`.github/workflows/deploy.yml`）：
+
+1. 安装依赖（根目录和 `functions/`）
+2. 进行类型检查，类型错误会在任何内容上线前中止部署
+3. 用 secret 中的 Firebase 环境变量构建官网，把 `GOOGLE_CLIENT_ID` 写入 `functions/.env`，并生成带有最新 CSP 脚本哈希的 `firebase.generated.json`
+4. 通过服务账号向 Google Cloud 进行身份验证
+5. 先运行 `firebase deploy --only functions`，再运行 `firebase deploy --except functions`（firebase-tools 固定为主版本 15）。先单独部署函数可以确保：如果函数部署中途停止（例如生产环境中仍有一个已删除的函数，而非交互模式拒绝删除它，或缺少某个 secret），新的规则和前端不会在旧函数之上发布。源代码未变的函数会被跳过，Hosting 最后发布，所以新前端绝不会先于它调用的函数或规则上线。
+
+只修改 `cloudflare/**`、`README.md`、`CONTRIBUTING.md`、`Trademarks.md` 或 `LICENSE` 的推送不会触发部署。
+
+也可以在 **Actions** 标签页 > **Deploy to Firebase** > **Run workflow** 中手动触发部署。
+
+### 手动部署（应急）
+
+CI 不可用时，仍可以在本机部署：
+
+```bash
+npm run deploy            # 完整部署（构建 + Hosting + 规则 + 函数 + 索引 + TTL）
+npm run deploy:rules      # 只部署函数、规则、索引和 TTL，不重新构建前端
+```
+
+两者都需要先在本地运行 `firebase login`。
+
+修改依赖时的锁文件和 Node 版本规则见 [CONTRIBUTING.md](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/CONTRIBUTING.md#dependencies)。

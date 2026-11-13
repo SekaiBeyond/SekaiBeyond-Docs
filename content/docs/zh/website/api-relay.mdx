@@ -1,0 +1,29 @@
+---
+title: 部署 API 中转
+description: 部署和试用门票 API 面向中国大陆的 Cloudflare 中转。
+---
+
+中转是一个 Cloudflare Worker，即 [`cloudflare/api-relay`](https://github.com/SekaiBeyond/SekaiBeyond-Web/tree/main/cloudflare/api-relay)，服务于 `api.sekaibeyond.com`。它做什么、为什么需要它，见[从中国大陆调用](../ticket-api/mainland-china.mdx)。
+
+## 部署
+
+Firebase 部署工作流不会处理它，所以由有权访问 Cloudflare 上 `sekaibeyond.com` 区域的人手动部署：
+
+```bash
+cd cloudflare/api-relay
+npx -y wrangler@4 login     # 只需一次
+npx -y wrangler@4 deploy
+```
+
+首次部署会创建 `api.sekaibeyond.com` 的 DNS 记录和证书。请先部署 Firebase 一侧：中转调用的是 Hosting 的 `/api/v1/**` 路由。
+
+## 在本地试用
+
+要在本地连接模拟器试用，先在一个终端中运行 `npm run dev`，再在另一个终端中运行：
+
+```bash
+cd cloudflare/api-relay
+npx -y wrangler@4 dev --var "UPSTREAM:http://127.0.0.1:5001/demo-sekaibeyond/us-central1/api"
+```
+
+它会在 http://localhost:8787 上提供服务。

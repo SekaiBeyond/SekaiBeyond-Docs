@@ -1,0 +1,39 @@
+---
+title: Firebase App Check
+description: 用 reCAPTCHA v3 保护 Firestore、Storage 和可调用函数。
+---
+
+应用用 reCAPTCHA v3 初始化 App Check，保护 Firestore、Storage 和可调用函数免受未授权客户端访问。如果没有完成以下步骤就在 Firebase 控制台中强制执行 App Check，所有读写都会以 `FirebaseError: Missing or insufficient permissions` 失败。
+
+## 1. 创建 reCAPTCHA v3 网站密钥
+
+1. 打开 [google.com/recaptcha/admin](https://www.google.com/recaptcha/admin) 注册一个新网站：
+   - 类型：**reCAPTCHA v3**
+   - 域名：添加官网所用的**每一个**域名，例如 `sekaibeyond.com`、`www.sekaibeyond.com`、`<project-id>.web.app`、`<project-id>.firebaseapp.com`，以及任何自定义的预览域名。漏掉域名是强制执行后出现权限错误的头号原因。
+2. 复制**网站密钥**（site key）和**私密密钥**（secret key）。
+
+## 2. 在 Firebase App Check 中注册 Web 应用
+
+1. Firebase 控制台 > **App Check** > **Apps** > 选择你的 Web 应用 > **reCAPTCHA v3**。
+2. 粘贴第 1 步中的**私密密钥**并保存。
+3. 在[第 4 步](#4-强制执行前先验证)确认令牌正常流转之前，保持 Firestore / Storage / Functions 的强制执行处于**关闭**状态。
+
+## 3. 把网站密钥接入构建
+
+把 `VITE_RECAPTCHA_SITE_KEY=<site-key>` 添加到：
+- GitHub 仓库 secret（见 [GitHub 仓库 Secrets](./deploy.mdx#2-github-仓库-secrets)）：生产构建必需。
+- 本地 `.env`：`npm run dev:prod` 获取真实令牌时必需。（`npm run dev` 连接的是[模拟器](./emulators.mdx)，会跳过 App Check。）
+
+Vite 在构建时内联 `VITE_*`，因此添加 secret 后必须重新构建，否则 App Check 在生产环境中会悄无声息地失效。
+
+## 4. 强制执行前先验证
+
+部署后打开生产站点，并打开 DevTools > Network：
+- `firebaseappcheck.googleapis.com/v1/.../exchangeRecaptchaV3Token` 应返回 **200**。返回 4xx 说明网站密钥、私密密钥或已注册的域名不匹配。
+- Firestore 请求应带有 `X-Firebase-AppCheck` 头。
+
+两项检查都通过后，再进入 App Check > **APIs**，为 Firestore、Storage 和 Cloud Functions 点击 **Enforce**。
+
+## 本地开发用的调试令牌
+
+对于 `npm run dev:prod`（或未在 reCAPTCHA 中注册的预发布域名），在 `.env` 中设置 `VITE_APP_CHECK_DEBUG_TOKEN=true`。首次加载页面时，浏览器控制台会打印一个调试令牌；把它复制到 Firebase 控制台 > App Check > Apps > **Manage debug tokens**，即可让这个令牌通过已强制执行的服务。在 `.env` 中设置 `VITE_APP_CHECK_DEBUG_TOKEN=<token>`，即可在多次会话间复用同一个令牌。

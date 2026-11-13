@@ -58,7 +58,7 @@ const copy = {
                 href: 'website',
                 icon: Wrench,
                 title: '官网开发',
-                body: '面向贡献者：模拟器、部署、邮件、App Check、Firestore 与用户组（英文）。',
+                body: '面向贡献者：模拟器、部署、邮件、App Check、Firestore 与用户组。',
             },
         ],
     },

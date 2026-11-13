@@ -1,0 +1,56 @@
+---
+title: 使用模拟器测试
+description: 在本地用 Firebase Local Emulator Suite 运行官网，绝不连接生产环境。
+---
+
+`npm run dev` 会让官网连接 [Firebase Local Emulator Suite](https://firebase.google.com/docs/emulator-suite)，绝不连接生产环境。模拟器有自己的 Auth 账号、Firestore 数据、Storage 文件和 Cloud Functions，使用演示项目 ID `demo-sekaibeyond`，无法访问任何真实的 Firebase 或 Google Cloud 服务。
+
+## 前置条件
+
+- [Firebase CLI](https://firebase.google.com/docs/cli)（`npm install -g firebase-tools`）
+- Java 21 或更高版本，供 Firestore 和 Storage 模拟器使用
+- 在根目录和 `functions/` 中都安装好依赖：
+
+  ```bash
+  npm install
+  npm --prefix functions install
+  ```
+
+## 运行
+
+```bash
+npm run dev
+```
+
+它在同一个终端中构建 functions，启动 Auth、Firestore、Functions 和 Storage 模拟器，并在它们就绪后在 http://localhost:5173 启动官网。修改 functions 时它也会重新构建，每次构建后模拟器会重新加载。
+
+不需要 `.env`。官网读取已提交到仓库的 [`.env.emulator`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/.env.emulator)，它的优先级高于 `.env`。
+
+模拟器监听以下端口，在 [`firebase.json`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firebase.json) 的 `emulators` 中设置：
+
+| 模拟器 | 地址 |
+|-----------|------------------------|
+| UI        | http://127.0.0.1:4000  |
+| Auth      | 127.0.0.1:9099         |
+| Firestore | 127.0.0.1:8080         |
+| Functions | 127.0.0.1:5001         |
+| Storage   | 127.0.0.1:9199         |
+
+## 数据
+
+http://127.0.0.1:4000 的 Emulator UI 可以查看和编辑数据。停止 `npm run dev`（Ctrl+C）时，数据会保存到 `.emulator-data/`，下次启动时再次载入。只按一次 Ctrl+C，等模拟器自行结束：第二次 Ctrl+C 会让它们不保存就停止。删除该文件夹即可从头开始。
+
+## 成为管理员
+
+真实的 Google 登录和邮件到不了模拟器，可以用下面任一替代方式登录。「Continue with Google (emulator)」会要求输入一个邮箱地址，并以该 Google 账号登录。用邮箱注册也可以：验证码在模拟器的输出中，位于所记录邮件主题的开头。然后按照生产环境设置第一位社长的方式提升该账号（见[设置第一位社长](./user-groups.mdx#设置第一位社长)）：在 Emulator UI 的 **Firestore** 标签页中，把你的 `users` 文档的 `group` 设为 `president`。
+
+## 与生产环境的不同
+
+- 不会发送任何邮件。不会调用 Resend：每封邮件都会连同主题和链接记录在模拟器的输出中（`Emulator, not sent: …`），并计为已发送。日志中还会提示模拟器无法从 Secret Manager 读取 `RESEND_API_KEY`，这是正常的。
+- App Check 已关闭。官网会跳过它，functions 在模拟环境中也不会强制执行。
+- 登录已登记应用时不经过 IAM 签名：模拟器自己签发所有令牌。因此[使用彼世界账号登录](../ticket-api/sign-in.mdx)无需 IAM 角色即可使用（前提是应用自己的 Firebase 客户端也连接这个 Auth 模拟器），应用的「维护者设置说明」中也不会列出 `gcloud` 命令。
+- 定时函数不会运行，因此会跳过 `scheduledMailDrain` 和 `uwParkingNightlySync`。在管理员于管理后台「UW 停车数据」下点击「立即同步」之前，停车指南没有停车场数据。
+- TTL 策略不会运行，因此已申请删除的账号、活动或徽章永远不会被删除。在 Emulator UI 中删除其文档仍会触发清理函数。
+- 不强制要求复合索引。`firestore.indexes.json` 中缺少的查询在这里能用，但在生产环境中会失败。
+
+模拟器做不到的事，例如真实的 Google 登录、App Check 或生产数据，可以用 `npm run dev:prod` 让官网改为连接真实项目。其设置见[本地开发](./deploy.mdx#3-本地开发)，并请谨慎使用：它做出的每项更改都会立即生效。
