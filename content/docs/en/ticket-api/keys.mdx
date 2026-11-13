@@ -23,9 +23,9 @@ On any registered app's card, **+ New Key** creates a server-to-server key under
 - **A new key works within a few seconds of being made,** not at once. Until then it answers `invalid-api-key`, so a first call made straight away may need a retry.
 - **Revoking a key deletes it.** It stops working at once and leaves the list, and Records keep its name, its app and its first and last few characters. An expired key gets a Delete button to clear it from the list the same way.
 - Each key has **scopes**: `events:read`, `team:read`, `event-staff:read`, `tickets:write`, `tickets:read`.
-- A key can be held to **specific events**, up to 20 of them, archived or not. By default it can use every event.
+- A key can be held to **specific events**, up to 20 of them, picked from the unarchived ones when it's made. It stays held to them once they're archived, and **Re-create** keeps them. By default it can use every event.
 - **Orders are kept per app ID** (`appId`). Two apps can each have an order `1001`, and a key only places and reads its own app's orders. Every key created under the same app shares those orders, so a replacement key under the same app finds the orders placed before.
-- Every key **expires**, after one year by default and two years at most.
+- Every key **expires**, after 30 days, 90 days, one year (the default) or two years.
 - Keys belong to the app, not to whoever made them. A key keeps working after its maker steps down, and any core-staff can rename or revoke it. Renaming changes only what the list, new orders and new records call it: orders and records already made keep the name they were made under.
 - Each key may make **120 calls a minute**.
 - Registering, editing or removing an app, creating, renaming or revoking a key, every order placed and every email sent or queued for one are logged in **Records**.

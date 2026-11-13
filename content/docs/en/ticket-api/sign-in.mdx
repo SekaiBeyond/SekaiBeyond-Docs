@@ -64,7 +64,9 @@ location.assign('https://sekaibeyond.com/authorize?' + new URLSearchParams({
 }));
 ```
 
-Someone who isn't signed in here yet is asked to sign in first. The page then shows the app's name, its maintainers (if any), and what it will see: their name, photo and role here. It never shares their email or password. Nothing happens until they click **Continue**.
+Someone who isn't signed in here yet is asked to sign in first. The page then shows the app's name, its maintainers (if any), and what it will see: their name, photo and role here. It never shares their email or password. Nothing happens until they click **Continue**, and **Use another account** signs them out here so they can sign in as someone else.
+
+A link whose app doesn't exist or has no user sign-in, whose `redirect_uri` the app doesn't list, or whose `state` or `code_challenge` is missing or malformed shows **This Link Doesn't Work** instead, and hands nothing back.
 
 </Step>
 <Step>

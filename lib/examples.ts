@@ -47,6 +47,7 @@ const eventStaffMember = {
     titleCn: '',
 };
 
+// In the order the API sends their fields.
 const unarchivedEvent = {
     id: 'k3Xq9VbLm2PzR8TaYw4N',
     archived: false,
@@ -55,12 +56,10 @@ const unarchivedEvent = {
     titleCn: '彼世界动漫游戏展 2026',
     description: 'Our yearly convention.\nCosplay, vendors and stage shows.',
     descriptionCn: '我们一年一度的漫展。\nCosplay、摊位和舞台表演。',
-    location: 'HUB Ballroom',
-    locationCn: 'HUB 宴会厅',
-    venueId: 'hub',
-    published: true,
-    paid: true,
-    deleteAt: null,
+    // With a venue, its name and the rooms picked, as the site shows them.
+    location: 'Husky Union Building · Ballroom',
+    locationCn: '学生活动中心 · 宴会厅',
+    venueId: 'Hq4Vn8Tz2Lc6Rw0Yb5Ue',
     con: { year: 2026 },
     startAt: '2026-11-14T18:00:00.000Z',
     endAt: '2026-11-15T02:00:00.000Z',
@@ -72,6 +71,9 @@ const unarchivedEvent = {
     customButtonText: '',
     customButtonTextCn: '',
     customButtonLink: '',
+    published: true,
+    paid: true,
+    deleteAt: null,
 };
 
 const archivedEvent = {
@@ -82,18 +84,19 @@ const archivedEvent = {
     titleCn: '春季游戏之夜',
     description: 'Board games and rhythm games.',
     descriptionCn: '桌游和音游。',
+    // Without a venue, the location as typed, and the English one for Chinese.
     location: 'Mary Gates Hall 241',
     locationCn: 'Mary Gates Hall 241',
     venueId: '',
-    published: true,
-    paid: false,
-    deleteAt: null,
     con: null,
     date: '2026-04-18',
-    tagIds: ['gameNight'],
+    tagIds: ['Tg5Hn2Kp8Wq1Zx4Cv7B'],
     icon: 'https://firebasestorage.googleapis.com/v0/b/…/o/events%2F…',
     recapLink: '',
     recapLinkCn: 'https://www.xiaohongshu.com/…',
+    published: true,
+    paid: false,
+    deleteAt: null,
 };
 
 const eventId = unarchivedEvent.id;

@@ -44,7 +44,7 @@ The site deploys automatically to Firebase Hosting when you push to `main` via G
 
    That builds the functions and deploys them in batches of 40, a minute apart. There are over a hundred, and deploying them all in one `firebase deploy --only functions` exceeds Cloud Functions' per-minute limit on changes the first time, when every one is new.
 
-9. Configure **Firestore TTL Policies** — the app relies on TTL-based auto-expiry for rate limiting, audit-log retention, deferred deletion of users/events/badges, cleanup of expired claim/activation/email codes and email-change undo links, scan-event retention, and per-client scan quotas. All twelve policies are defined in [`firestore.indexes.json`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.indexes.json), so they deploy with the indexes:
+9. Configure **Firestore TTL Policies** — the app relies on TTL-based auto-expiry for rate limiting, audit-log retention, deferred deletion of users/events/badges, cleanup of expired claim/activation/email codes, email-change undo links and app sign-in codes, scan-event retention, and per-client scan quotas. All thirteen policies are defined in [`firestore.indexes.json`](https://github.com/SekaiBeyond/SekaiBeyond-Web/blob/main/firestore.indexes.json), so they deploy with the indexes:
 
    ```bash
    firebase deploy --only firestore:indexes
